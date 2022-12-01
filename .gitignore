@@ -6,3 +6,8 @@ node_modules
 .env
 
 /app/styles/app.css
+
+.idea
+.vscode/*
+.history
+*.vsix
