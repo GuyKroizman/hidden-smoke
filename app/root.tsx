@@ -1,3 +1,5 @@
+import styles from "./styles/app.css"
+
 import type { MetaFunction } from "@remix-run/node";
 import {
   Links,
@@ -8,9 +10,15 @@ import {
   ScrollRestoration,
 } from "@remix-run/react";
 
+export function links() {
+  return [
+    {rel: "stylesheet", href: styles},
+  ];
+}
+
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
-  title: "New Remix App",
+  title: "Guy Kroizman",
   viewport: "width=device-width,initial-scale=1",
 });
 
