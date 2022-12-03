@@ -2,9 +2,9 @@ import { Link } from "@remix-run/react";
 
 export default function SnakeBitter() {
   return (
-    <main dir="rtl">
+    <main dir="rtl" className="bg-amber-50">
       <Link to="/" className="text-xl text-blue-600 underline">
-        Home
+        Back
       </Link>
       <h1 className="px-16 text-8xl text-gray-500 border-b-4">נושך הנחשים</h1>
 
