@@ -1,11 +1,15 @@
 import { Link } from "@remix-run/react";
 import { phaser } from "~/routes/games/phaser.client";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { rogue0Config } from "~/routes/games/rogue0/config.client";
+import type { Game } from "phaser";
 
 export default function Rogue0() {
+  const phaserRef = useRef<Game>()
   useEffect(() => {
-    new phaser.Game(rogue0Config);
+    if(!phaserRef.current) {
+      phaserRef.current = new phaser.Game(rogue0Config);
+    }
   }, []);
 
   return (
