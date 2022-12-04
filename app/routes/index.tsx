@@ -32,7 +32,7 @@ export default function Index() {
           <Link to="/snake-bitter" className="text-xl text-blue-600 underline">Snake Bitter</Link>
         </li>
         <li>
-          <Link to="/rogue0" className="text-xl text-blue-600 underline">Rogue0</Link>
+          <Link to="/games/rogue0/rogue0" className="text-xl text-blue-600 underline">Rogue0</Link>
         </li>
       </ul>
     </div>
