@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import dungeon from "~/routes/games/rogue0/dungeon.client";
 
 export class Scene0 extends Phaser.Scene {
   constructor() {
@@ -14,17 +15,7 @@ export class Scene0 extends Phaser.Scene {
   }
 
   create() {
-    const logo = this.add.image(400, 150, "logo");
 
-    this.tweens.add({
-      targets: logo,
-      y: 450,
-      duration: 2000,
-      ease: "Power2",
-      yoyo: true,
-      loop: -1,
-    });
-
-    this.add.image(60, 70, "tiles",180 );
+    dungeon.initialize(this);
   }
 }
