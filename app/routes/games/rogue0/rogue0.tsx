@@ -19,6 +19,7 @@ export default function Rogue0() {
         Back
       </Link>
       <div id="phaser"></div>
+      <div>Tiles generously from <a href='https://kenney.nl/'>Kenney's</a> assets</div>
     </div>
   );
 }
