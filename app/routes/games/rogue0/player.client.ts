@@ -1,7 +1,8 @@
 import type { GameContext } from "~/routes/games/rogue0/context.client";
-import { Sprites } from "~/routes/games/rogue0/dungeon.client";
+import { Sprites } from "./dungeon.client";
+import type { Entity } from "./turnManager.client";
 
-export default class PlayerCharacter {
+export default class PlayerCharacter implements Entity{
   private movementPoints: number;
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
   private x: number;

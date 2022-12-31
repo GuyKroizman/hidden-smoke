@@ -1,6 +1,12 @@
 import type PlayerCharacter from "~/routes/games/rogue0/player.client";
 import type { GameContext } from "~/routes/games/rogue0/context.client";
 
+export interface Entity {
+  refresh(): void;
+  turn(context: GameContext): void;
+  over(): boolean;
+}
+
 const turnManager = {
   interval: 150,
   entities: new Set<PlayerCharacter>(),
