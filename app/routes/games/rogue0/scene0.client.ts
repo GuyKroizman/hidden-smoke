@@ -25,7 +25,7 @@ export class Scene0 extends Phaser.Scene {
   }
 
   update() {
-    if (!turnManager.over()) {
+    if (turnManager.over()) {
       turnManager.refresh();
     }
     turnManager.turn(context);

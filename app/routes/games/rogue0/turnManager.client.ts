@@ -5,10 +5,14 @@ const turnManager = {
   interval: 150,
   entities: new Set<PlayerCharacter>(),
   lastCall: Date.now(),
+
   addEntity: (entity: PlayerCharacter) => turnManager.entities.add(entity),
+
   removeEntity: (entity: PlayerCharacter) =>
     turnManager.entities.delete(entity),
+
   refresh: () => turnManager.entities.forEach((e) => e.refresh()),
+
   turn: (context: GameContext) => {
     let now = Date.now();
     let limit = turnManager.lastCall + turnManager.interval;
