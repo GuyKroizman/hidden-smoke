@@ -26,6 +26,7 @@ export default function App() {
   return (
     <html lang="en">
       <head>
+        <title>Kroizman</title>
         <Meta />
         <Links />
       </head>

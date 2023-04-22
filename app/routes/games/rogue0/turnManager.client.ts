@@ -25,14 +25,14 @@ const turnManager = {
     if (now > limit) {
       for (let e of turnManager.entities) {
         if (!e.over()) {
-          e.turn(context);
+          e.turn(context)
           break;
         }
       }
-      turnManager.lastCall = Date.now();
+      turnManager.lastCall = Date.now()
     }
   },
   over: () => [...turnManager.entities].every((e) => e.over()),
 };
 
-export default turnManager;
+export default turnManager
