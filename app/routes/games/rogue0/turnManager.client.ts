@@ -2,6 +2,11 @@ import type PlayerCharacter from "~/routes/games/rogue0/player.client";
 import type { GameContext } from "~/routes/games/rogue0/context.client";
 
 export interface Entity {
+  x: number;
+  y: number;
+  moving: boolean;
+  sprite: Phaser.GameObjects.Sprite;
+  tile: number;
   refresh(): void;
   turn(context: GameContext): void;
   over(): boolean;
