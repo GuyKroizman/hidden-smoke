@@ -20,7 +20,9 @@ let dungeon = {
       tileWidth: tileSize,
       tileHeight: tileSize,
     };
+
     context.map = context.scene!.make.tilemap(config);
+
     const tileset = context.map.addTilesetImage(
       "tiles",
       "tiles",
@@ -28,7 +30,8 @@ let dungeon = {
       tileSize,
       0,
       1
-    ); // key: texture key
+    );
+
     context.map.createLayer(0, tileset, 0, 0);
   },
 
