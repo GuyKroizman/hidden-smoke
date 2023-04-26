@@ -25,12 +25,10 @@ export default class PlayerCharacter implements Entity{
     this.hp = 10;
     this.moving = false;
 
-    let xx = context.map.tileToWorldX(x)
-    let yy = context.map.tileToWorldY(y)
-    this.sprite = context.scene.add.sprite(xx, yy, "tiles", this.tile)
+    let worldX = context.map.tileToWorldX(x)
+    let worldY = context.map.tileToWorldY(y)
+    this.sprite = context.scene.add.sprite(worldX, worldY, "tiles", this.tile)
     this.sprite.setOrigin(0)
-
-    context.map!.putTileAt(this.tile, this.x, this.y)
   }
 
   refresh() {
