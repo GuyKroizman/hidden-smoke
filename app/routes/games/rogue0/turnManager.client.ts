@@ -16,30 +16,35 @@ export interface Entity {
 }
 
 const turnManager = {
-  entities: new Set<PlayerCharacter>(),
+  entities: new Set<Entity>(),
   currentIndex: 0,
 
-  addEntity: (entity: PlayerCharacter) => turnManager.entities.add(entity),
+  addEntity: (entity: Entity) => turnManager.entities.add(entity),
 
   removeEntity: (entity: PlayerCharacter) =>
     turnManager.entities.delete(entity),
 
-  refresh: () => turnManager.entities.forEach((e) => e.refresh()),
+  refresh: () => turnManager.entities.forEach((e) => {
+    e.refresh();
+    turnManager.currentIndex = 0
+  }),
 
   turn: (context: GameContext) => {
-    if (turnManager.entities.size > 0) {
-      let entitiesList = [...turnManager.entities];
-      let e = entitiesList[turnManager.currentIndex];
+    if (turnManager.entities.size === 0) {
+      return;
+    }
 
-      if (!e.over()) {
-        e.turn(context);
-      } else {
-        turnManager.currentIndex++;
-      }
+    let entitiesList = [...turnManager.entities];
+    let e = entitiesList[turnManager.currentIndex];
+
+    if (!e.over()) {
+      e.turn(context);
+    } else {
+      turnManager.currentIndex++;
     }
   },
 
-  over: () => [...turnManager.entities].every((e) => e.over())
+  over: () => [...turnManager.entities].every((e) => e.over()),
 };
 
 export default turnManager;

@@ -14,7 +14,7 @@ export default class PlayerCharacter implements Entity{
 
   constructor(x: number, y: number, context: GameContext) {
     if (context.map == undefined || context.scene == undefined) {
-      throw new Error("context.map is undefined");
+      throw new Error("Error in PlayerCharacter context is undefined");
     }
 
     this.movementPoints = 1
