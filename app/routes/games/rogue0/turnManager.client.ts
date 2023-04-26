@@ -7,15 +7,17 @@ export interface Entity {
   moving: boolean;
   sprite: Phaser.GameObjects.Sprite;
   tile: number;
+
   refresh(): void;
+
   turn(context: GameContext): void;
+
   over(): boolean;
 }
 
 const turnManager = {
-  interval: 150,
   entities: new Set<PlayerCharacter>(),
-  lastCall: Date.now(),
+  currentIndex: 0,
 
   addEntity: (entity: PlayerCharacter) => turnManager.entities.add(entity),
 
@@ -25,19 +27,19 @@ const turnManager = {
   refresh: () => turnManager.entities.forEach((e) => e.refresh()),
 
   turn: (context: GameContext) => {
-    let now = Date.now();
-    let limit = turnManager.lastCall + turnManager.interval;
-    if (now > limit) {
-      for (let e of turnManager.entities) {
-        if (!e.over()) {
-          e.turn(context)
-          break;
-        }
+    if (turnManager.entities.size > 0) {
+      let entitiesList = [...turnManager.entities];
+      let e = entitiesList[turnManager.currentIndex];
+
+      if (!e.over()) {
+        e.turn(context);
+      } else {
+        turnManager.currentIndex++;
       }
-      turnManager.lastCall = Date.now()
     }
   },
-  over: () => [...turnManager.entities].every((e) => e.over()),
+
+  over: () => [...turnManager.entities].every((e) => e.over())
 };
 
-export default turnManager
+export default turnManager;
