@@ -45,11 +45,13 @@ export default class Skeleton implements Entity{
   }
 
   turn() {
+    if(!this.context.player) {
+      throw new Error("Error in Skeleton context.player is undefined")
+    }
     let oldX = this.x
     let oldY = this.y
 
     if (this.movementPoints > 0) {
-      // https://github.com/qiao/PathFinding.js
       let pX = this.context.player!.x
       let pY = this.context.player!.y
       const grid = new PF.Grid(level)
@@ -66,7 +68,7 @@ export default class Skeleton implements Entity{
 
       if (this.actionPoints > 0) {
         if (dungeon.distanceBetweenEntities(this, this.context.player) <= 2) {
-          dungeon.attackEntity(this, this.context.player)
+          dungeon.attackEntity(this.context, this, this.context.player)
           this.actionPoints -= 1
         }
       }

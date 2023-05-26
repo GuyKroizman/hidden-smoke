@@ -82,12 +82,18 @@ export default class PlayerCharacter implements Entity {
         this.movementPoints -= 1;
 
         if (dungeon.isWalkableTile(context, newX, newY)) {
+          let enemy = dungeon.entityAtTile(context, newX, newY)
+
+          if (enemy && this.actionPoints > 0) {
+            dungeon.attackEntity(context, this, enemy)
+            this.actionPoints -= 1
+          }
           dungeon.moveEntityTo(context, this, newX, newY);
         }
       }
     }
 
-    if (this.healthPoints <= 3) {
+    if (this.healthPoints <= 6) {
       this.sprite.tint = Phaser.Display.Color.GetColor(255, 0, 0);
     }
   }
