@@ -28,15 +28,15 @@ export class Scene0 extends Phaser.Scene {
     dungeon.initialize(this.context);
 
     let player = new PlayerCharacter(15, 15, this.context);
-    turnManager.addEntity(player);
+    this.context.entities.push(player)
     this.context.player = player;
 
-    turnManager.addEntity(new Skeleton(this.context,70, 8));
+    this.context.entities.push(new Skeleton(this.context,70, 8));
   }
 
   update() {
-    if (turnManager.over()) {
-      turnManager.refresh();
+    if (turnManager.over(this.context)) {
+      turnManager.refresh(this.context);
     }
     turnManager.turn(this.context);
   }
