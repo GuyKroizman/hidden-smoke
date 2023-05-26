@@ -53,6 +53,8 @@ export default class PlayerCharacter implements Entity {
   }
 
   turn(context: GameContext) {
+    let oldX = this.x
+    let oldY = this.y
     let moved = false;
     let newX = this.x;
     let newY = this.y;
@@ -81,13 +83,17 @@ export default class PlayerCharacter implements Entity {
       if (moved) {
         this.movementPoints -= 1;
 
-        if (dungeon.isWalkableTile(context, newX, newY)) {
-          let enemy = dungeon.entityAtTile(context, newX, newY)
+        if (!dungeon.isWalkableTile(context, newX, newY)) {
+          let enemy = dungeon.entityAtTile(context, newX, newY);
 
           if (enemy && this.actionPoints > 0) {
-            dungeon.attackEntity(context, this, enemy)
-            this.actionPoints -= 1
+            dungeon.attackEntity(context, this, enemy);
+            this.actionPoints -= 1;
           }
+          newX = oldX;
+          newY = oldY;
+        }
+        if (newX !== oldX || newY !== oldY) {
           dungeon.moveEntityTo(context, this, newX, newY);
         }
       }
