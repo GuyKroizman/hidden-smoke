@@ -22,7 +22,7 @@ export interface Entity {
 }
 
 export function removeEntity(context: GameContext, entity: Entity) {
-  const victimIndexInEntities = context.entities.findIndex(() => entity);
+  const victimIndexInEntities = context.entities.findIndex((e) => e === entity);
   context.entities.splice(victimIndexInEntities, 1);
 
   entity.sprite.destroy();
