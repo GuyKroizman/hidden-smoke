@@ -69,8 +69,8 @@ export default class Skeleton implements Entity{
       if (this.actionPoints > 0) {
         if (dungeon.distanceBetweenEntities(this, this.context.player) <= 2) {
           dungeon.attackEntity(this.context, this, this.context.player)
-          this.actionPoints -= 1
         }
+        this.actionPoints -= 1
       }
     }
   }
