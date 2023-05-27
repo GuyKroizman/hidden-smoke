@@ -3,7 +3,7 @@ import type { GameContext } from "~/routes/games/rogue0/context.client";
 export class UI extends Phaser.Scene {
   context: GameContext;
   private key: string;
-  private active: boolean;
+  active: boolean;
   private log: Phaser.GameObjects.Text | undefined;
 
   constructor(context: GameContext) {

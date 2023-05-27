@@ -3,6 +3,11 @@ import { Scene0 } from "~/routes/games/rogue0/scene0.client";
 import { UI } from "~/routes/games/rogue0/ui.client";
 import { context } from "~/routes/games/rogue0/context.client";
 
+const scene0 = new Scene0(context);
+
+let ui = new UI(context);
+console.log('ui is active', ui.active)
+
 export const rogue0Config = {
   type: Phaser.AUTO,
   parent: "phaser",
@@ -10,7 +15,7 @@ export const rogue0Config = {
   height: 50 * 16,
   backgroundColor: "#472d3c",
   pixelArt: true,
-  scene: [new Scene0(context), new UI(context)],
+  scene: [scene0, ui],
   physics: {
     default: "arcade",
     arcade: {
