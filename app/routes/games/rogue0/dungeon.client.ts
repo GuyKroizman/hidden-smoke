@@ -115,9 +115,7 @@ let dungeon = {
         let damage = attacker.attack();
         victim.healthPoints -= damage;
 
-        console.log(
-          `${attacker.name} does ${damage} damage to ${victim.name} which now has ${victim.healthPoints} life left`
-        );
+        this.log(context, `${attacker.name} does ${damage} damage to ${victim.name}.`)
 
         if (victim.healthPoints <= 0) {
           removeEntity(context, victim);
@@ -132,6 +130,10 @@ let dungeon = {
       yoyo: true,
     });
   },
+  log: function(context: GameContext, text: string) {
+    context.messages.unshift(text)
+    context.messages = context.messages.slice(0,8)
+  }
 };
 
 export default dungeon;

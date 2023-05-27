@@ -9,6 +9,8 @@ export interface Entity {
   sprite: Phaser.GameObjects.Sprite;
   tile: number;
   name: string;
+  UISprite?: Phaser.GameObjects.Sprite;
+  UIText?: Phaser.GameObjects.Text;
 
   refresh(): void;
 
@@ -19,6 +21,8 @@ export interface Entity {
   attack(): number;
 
   onDestroy(): void;
+
+  createUI?(options: { scene: Phaser.Scene, x: number, y: number, width: number }): number;
 }
 
 export function removeEntity(context: GameContext, entity: Entity) {

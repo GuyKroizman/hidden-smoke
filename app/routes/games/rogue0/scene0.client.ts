@@ -7,11 +7,15 @@ import Skeleton from "~/routes/games/rogue0/monsters/skelaton.client";
 
 export class Scene0 extends Phaser.Scene {
   context: GameContext;
+  private key: string;
+  private active: boolean;
 
   constructor(context: GameContext) {
-    super("idk");
+    super("scene0");
 
     this.context = context;
+    this.key = "scene0";
+    this.active = true;
   }
 
   preload() {
@@ -31,7 +35,23 @@ export class Scene0 extends Phaser.Scene {
     this.context.entities.push(player)
     this.context.player = player;
 
-    this.context.entities.push(new Skeleton(this.context,70, 8));
+    this.context.entities.push(new Skeleton(this.context,76, 10));
+    this.context.entities.push(new Skeleton(this.context,20, 20));
+    this.context.entities.push(new Skeleton(this.context,20, 10));
+    this.context.entities.push(new Skeleton(this.context,29, 24));
+    this.context.entities.push(new Skeleton(this.context,29, 20));
+
+    // Set camera, causes game viewport
+    // to shrink on the right side freeing
+    // space for the UI scene.
+    let camera = this.cameras.main
+    camera.setViewport(0, 0, camera.worldView.width-200, camera.worldView.height)
+    camera.setBounds(0, 0, camera.worldView.width, camera.worldView.height)
+    camera.startFollow(this.context.player.sprite)
+
+
+    // Trigger UI scene construction
+    // this.events.emit('createUI')
   }
 
   update() {
