@@ -8,7 +8,7 @@ const scene0 = new Scene0(context);
 let ui = new UI(context);
 console.log('ui is active', ui.active)
 
-export const rogue0Config = {
+export const rogue0Config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
   parent: "phaser",
   width: 80 * 16,
