@@ -3,12 +3,19 @@ import { phaser } from "~/routes/games/phaser.client";
 import { useEffect, useRef } from "react";
 import { rogue0Config } from "~/routes/games/rogue0/config.client";
 import type { Game } from "phaser";
+import { UI } from "~/routes/games/rogue0/ui.client";
+import { context } from "~/routes/games/rogue0/context.client";
 
 export default function Rogue0() {
   const phaserRef = useRef<Game>()
   useEffect(() => {
     if(!phaserRef.current) {
-      phaserRef.current = new phaser.Game(rogue0Config);
+      const game = new phaser.Game(rogue0Config);
+      phaserRef.current = game;
+
+      let ui = new UI(context);
+      game.scene.add('ui-scene', ui, true)
+
     }
   }, []);
 
