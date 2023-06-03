@@ -39,7 +39,7 @@ export default class Skeleton implements Entity {
 
     let worldX = context.map.tileToWorldX(x);
     let worldY = context.map.tileToWorldY(y);
-    this.sprite = context.scene.add.sprite(worldX, worldY, "tiles", this.tile);
+    this.sprite = context.scene.add.sprite(worldX!, worldY!, "tiles", this.tile);
     this.sprite.setOrigin(0);
 
     this.name = "Skeleton";

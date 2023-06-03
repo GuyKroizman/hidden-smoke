@@ -1,7 +1,7 @@
 import type { GameContext } from "~/routes/games/rogue0/context.client";
 import dungeon from "~/routes/games/rogue0/dungeon.client";
 
-import { Entity } from "~/routes/games/rogue0/entity";
+import type { Entity } from "~/routes/games/rogue0/entity";
 
 export default class PlayerCharacter implements Entity {
   private movementPoints: number;
@@ -12,6 +12,10 @@ export default class PlayerCharacter implements Entity {
   healthPoints: number;
   actionPoints: number;
   tweens: number;
+  UISprite?: Phaser.GameObjects.Sprite;
+  UIHeader?: Phaser.GameObjects.Text;
+  UIStatsText?: Phaser.GameObjects.Text;
+  UIItems?: Phaser.GameObjects.Rectangle[];
   tile: number;
   moving: boolean;
   sprite: Phaser.GameObjects.Sprite;
@@ -22,7 +26,7 @@ export default class PlayerCharacter implements Entity {
     }
 
     this.movementPoints = 1;
-    this.cursors = context.scene!.input.keyboard.createCursorKeys();
+    this.cursors = context.scene!.input.keyboard!.createCursorKeys();
     this.x = x;
     this.y = y;
     this.tile = 29;
@@ -34,7 +38,7 @@ export default class PlayerCharacter implements Entity {
 
     let worldX = context.map.tileToWorldX(x);
     let worldY = context.map.tileToWorldY(y);
-    this.sprite = context.scene.add.sprite(worldX, worldY, "tiles", this.tile);
+    this.sprite = context.scene.add.sprite(worldX!, worldY!, "tiles", this.tile);
     this.sprite.setOrigin(0);
   }
 
@@ -105,6 +109,69 @@ export default class PlayerCharacter implements Entity {
   }
 
   over() {
-    return this.movementPoints == 0 && !this.moving;
+    let isOver = this.movementPoints == 0 && !this.moving
+
+    if (this.UIHeader){
+      if (isOver ) {
+        this.UIHeader.setColor("#cfc6b8")
+      } else {
+        this.UIHeader.setColor("#fff")
+      }
+    }
+
+    if (this.UIStatsText) {
+      this.UIStatsText.setText( `Hp: ${this.healthPoints}\nMp: ${this.movementPoints}\nAp: ${this.actionPoints}`)
+    }
+    return isOver
+  }
+
+  createUI({ scene, x, y }: { scene: Phaser.Scene; x: number; y: number }) {
+    let accumulatedHeight = 0;
+    // Character sprite and name
+    this.UISprite = scene.add.sprite(x, y, "tiles", this.tile).setOrigin(0)
+
+    this.UIHeader = scene.add.text(
+      x + 20,
+      y,
+      this.name,
+      {
+        font: '16px Arial',
+        color: '#cfc6b8'
+      })
+
+
+    // Character stats
+    this.UIStatsText = scene.add.text(
+      x + 20,
+      y + 20,
+      `Hp: ${this.healthPoints}\nMp: ${this.movementPoints}\nAp: ${this.actionPoints}`,
+      {
+        font: '12px Arial',
+        backgroundColor: '#cfc6b8'
+      })
+
+    accumulatedHeight += this.UIStatsText.height + this.UISprite.height
+
+    // Inventory screen
+    let itemsPerRow = 5
+    let rows = 2
+    this.UIItems = []
+
+    for (let row = 1; row <= rows; row++) {
+      for (let cell = 1; cell <= itemsPerRow; cell++) {
+        let rx = x + (25 * cell)
+        let ry = y + 50 + (25 * row)
+        this.UIItems.push(
+          scene.add.rectangle(rx, ry, 20, 20, 0xcfc6b8, 0.3).setOrigin(0)
+        )
+      }
+    }
+
+    accumulatedHeight += 90
+
+    // Separator
+    scene.add.line(x+5, y+120, 0, 10, 175, 10, 0xcfc6b8).setOrigin(0)
+
+    return accumulatedHeight
   }
 }
