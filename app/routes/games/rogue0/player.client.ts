@@ -1,7 +1,7 @@
 import type { GameContext } from "~/routes/games/rogue0/context.client";
 import dungeon from "~/routes/games/rogue0/dungeon.client";
 
-import type { Entity } from "~/routes/games/rogue0/entity";
+import type { Entity, EntityType } from "~/routes/games/rogue0/entity";
 
 export default class PlayerCharacter implements Entity {
   private movementPoints: number;
@@ -9,6 +9,7 @@ export default class PlayerCharacter implements Entity {
   x: number;
   y: number;
   name: string;
+  type: EntityType;
   healthPoints: number;
   actionPoints: number;
   tweens: number;
@@ -30,9 +31,10 @@ export default class PlayerCharacter implements Entity {
     this.x = x;
     this.y = y;
     this.tile = 29;
-    this.healthPoints = 15;
+    this.healthPoints = 30;
     this.moving = false;
     this.name = "Player";
+    this.type = "player";
     this.tweens = 0;
     this.actionPoints = 1;
 

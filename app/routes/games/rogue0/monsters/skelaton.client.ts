@@ -2,7 +2,7 @@ import dungeon from "~/routes/games/rogue0/dungeon.client";
 import type { GameContext } from "~/routes/games/rogue0/context.client";
 import PF from "pathfinding";
 import level from "../level.client.js";
-import type { Entity } from "~/routes/games/rogue0/entity";
+import type { Entity, EntityType } from "~/routes/games/rogue0/entity";
 
 export default class Skeleton implements Entity {
   private movementPoints: number;
@@ -13,6 +13,7 @@ export default class Skeleton implements Entity {
   private context: GameContext;
   moving: boolean;
   readonly name: string;
+  type: EntityType;
   actionPoints: number;
   healthPoints: number;
   tweens: number;
@@ -30,7 +31,7 @@ export default class Skeleton implements Entity {
     this.context = context;
     this.movementPoints = 1;
     this.actionPoints = 1;
-    this.healthPoints = 1;
+    this.healthPoints = 4;
     this.x = x;
     this.y = y;
     this.tile = 26;
@@ -43,6 +44,7 @@ export default class Skeleton implements Entity {
     this.sprite.setOrigin(0);
 
     this.name = "Skeleton";
+    this.type = "enemy"
   }
 
   refresh() {
