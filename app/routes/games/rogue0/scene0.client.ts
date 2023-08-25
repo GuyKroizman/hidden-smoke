@@ -47,10 +47,6 @@ export class Scene0 extends Phaser.Scene {
     camera.setViewport(0, 0, camera.worldView.width-200, camera.worldView.height)
     camera.setBounds(0, 0, camera.worldView.width, camera.worldView.height)
     camera.startFollow(this.context.player.sprite)
-
-
-    // Trigger UI scene construction
-    // this.events.emit('createUI')
   }
 
   update() {
