@@ -9,17 +9,19 @@ export default class PlayerCharacter implements Entity {
   x: number;
   y: number;
   name: string;
+  description: string = "A brave adventurer";
   type: EntityType;
   healthPoints: number;
   actionPoints: number;
-  tweens: number;
+  tweens: number = 0;
   UISprite?: Phaser.GameObjects.Sprite;
   UIHeader?: Phaser.GameObjects.Text;
   UIStatsText?: Phaser.GameObjects.Text;
   UIItems?: Phaser.GameObjects.Rectangle[];
   tile: number;
-  moving: boolean;
+  moving: boolean = false;
   sprite: Phaser.GameObjects.Sprite;
+  items: any[] = [];
 
   constructor(x: number, y: number, context: GameContext) {
     if (context.map == undefined || context.scene == undefined) {
@@ -32,20 +34,96 @@ export default class PlayerCharacter implements Entity {
     this.y = y;
     this.tile = 29;
     this.healthPoints = 30;
-    this.moving = false;
     this.name = "Player";
     this.type = "player";
-    this.tweens = 0;
     this.actionPoints = 1;
 
     let worldX = context.map.tileToWorldX(x);
     let worldY = context.map.tileToWorldY(y);
     this.sprite = context.scene.add.sprite(worldX!, worldY!, "tiles", this.tile);
     this.sprite.setOrigin(0);
+
+    context.scene!.input.keyboard!.on("keyup", (event: KeyboardEvent) => {
+
+      let key = event.key;
+
+      let keyNumber = Number(key);
+      if (!isNaN(keyNumber)) {
+
+        if (keyNumber == 0) {
+          keyNumber = 10;
+        }
+
+        this.toggleItem(context, keyNumber - 1);
+      }
+    });
   }
 
-  attack(): number {
-    return 1;
+  toggleItem(context: GameContext, itemNumber: number) {
+    const item = this.items[itemNumber];
+    if (!item) {
+      return;
+    }
+    if (item.weapon) {
+      this.items.forEach(i => i.active = i.weapon ? false : i.active);
+    }
+    item.active = !item.active;
+    if (item.active) {
+      dungeon.log(context, `${this.name} equips ${item.name}: ${item.description}.`);
+      item.equip(itemNumber);
+    }
+  }
+
+  removeItem(itemNumber: number) {
+    const item = this.items[itemNumber];
+
+    if (item) {
+      this.items.forEach(i => {
+        i.UIsprite.destroy();
+        delete i.UIsprite;
+      });
+      this.items = this.items.filter(i => i !== item);
+      this.refreshUI();
+    }
+
+  }
+
+  removeItemByProperty(property, value) {
+    this.items.forEach(i => {
+      i.UIsprite.destroy();
+      delete i.UIsprite;
+    });
+    this.items = this.items.filter(i => i[property] !== value);
+    this.refreshUI();
+  }
+
+  equippedItems() {
+    return this.items.filter(i => i.active);
+  }
+
+  refreshUI() {
+    for (let i = 0; i < this.items.length; i++) {
+      let item = this.items[i];
+      if (!item.UIsprite) {
+        let x = this.UIItems![i].x + 10;
+        let y = this.UIItems![i].y + 10;
+        item.UIsprite = this.UIscene.add.sprite(x, y, "tiles", item.tile);
+      }
+      if (!item.active) {
+        item.UIsprite.setAlpha(0.5);
+        this.UIItems![i].setStrokeStyle();
+      } else {
+        item.UIsprite.setAlpha(1);
+        this.UIItems![i].setStrokeStyle(1, 0xffffff);
+      }
+    }
+  }
+
+  attack() {
+    const items = this.equippedItems();
+    const combineDamage = (total: number, item: Entity) => total + item.damage();
+
+    return items.reduce(combineDamage, 0);
   }
 
   onDestroy(): void {
@@ -59,8 +137,8 @@ export default class PlayerCharacter implements Entity {
   }
 
   turn(context: GameContext) {
-    let oldX = this.x
-    let oldY = this.y
+    let oldX = this.x;
+    let oldY = this.y;
     let moved = false;
     let newX = this.x;
     let newY = this.y;
@@ -90,56 +168,67 @@ export default class PlayerCharacter implements Entity {
         this.movementPoints -= 1;
 
         if (!dungeon.isWalkableTile(context, newX, newY)) {
-          let enemy = dungeon.entityAtTile(context, newX, newY);
+          let entity = dungeon.entityAtTile(context, newX, newY);
 
-          if (enemy && this.actionPoints > 0) {
-            dungeon.attackEntity(context, this, enemy);
+          if (entity && entity.type === "enemy" && this.actionPoints > 0) {
+            dungeon.attackEntity(context, this, entity);
             this.actionPoints -= 1;
           }
-          newX = oldX;
-          newY = oldY;
-        }
-        if (newX !== oldX || newY !== oldY) {
-          dungeon.moveEntityTo(context, this, newX, newY);
+
+          if (entity && entity.type === "item" && this.actionPoints > 0) {
+            this.items.push(entity);
+            dungeon.itemPicked(entity);
+            dungeon.log(context, `${this.name} picked ${entity.name}: ${entity.description}`);
+            this.actionPoints -= 1;
+          } else {
+            newX = oldX;
+            newY = oldY;
+          }
         }
       }
+      if (newX !== oldX || newY !== oldY) {
+        dungeon.moveEntityTo(context, this, newX, newY);
+      }
     }
+
 
     if (this.healthPoints <= 6) {
       this.sprite.tint = Phaser.Display.Color.GetColor(255, 0, 0);
     }
+
+    this.refreshUI();
   }
 
   over() {
-    let isOver = this.movementPoints == 0 && !this.moving
+    let isOver = this.movementPoints == 0 && !this.moving;
 
-    if (this.UIHeader){
-      if (isOver ) {
-        this.UIHeader.setColor("#cfc6b8")
+    if (this.UIHeader) {
+      if (isOver) {
+        this.UIHeader.setColor("#cfc6b8");
       } else {
-        this.UIHeader.setColor("#fff")
+        this.UIHeader.setColor("#fff");
       }
     }
 
     if (this.UIStatsText) {
-      this.UIStatsText.setText( `Hp: ${this.healthPoints}\nMp: ${this.movementPoints}\nAp: ${this.actionPoints}`)
+      this.UIStatsText.setText(`Hp: ${this.healthPoints}\nMp: ${this.movementPoints}\nAp: ${this.actionPoints}`);
     }
-    return isOver
+    return isOver;
   }
 
   createUI({ scene, x, y }: { scene: Phaser.Scene; x: number; y: number }) {
     let accumulatedHeight = 0;
     // Character sprite and name
-    this.UISprite = scene.add.sprite(x, y, "tiles", this.tile).setOrigin(0)
+    this.UISprite = scene.add.sprite(x, y, "tiles", this.tile).setOrigin(0);
 
     this.UIHeader = scene.add.text(
       x + 20,
       y,
       this.name,
       {
-        font: '16px Arial',
-        color: '#cfc6b8'
-      })
+        font: "16px Arial",
+        color: "#cfc6b8"
+      });
 
 
     // Character stats
@@ -148,32 +237,32 @@ export default class PlayerCharacter implements Entity {
       y + 20,
       `Hp: ${this.healthPoints}\nMp: ${this.movementPoints}\nAp: ${this.actionPoints}`,
       {
-        font: '12px Arial',
-        backgroundColor: '#cfc6b8'
-      })
+        font: "12px Arial",
+        backgroundColor: "#cfc6b8"
+      });
 
-    accumulatedHeight += this.UIStatsText.height + this.UISprite.height
+    accumulatedHeight += this.UIStatsText.height + this.UISprite.height;
 
     // Inventory screen
-    let itemsPerRow = 5
-    let rows = 2
-    this.UIItems = []
+    let itemsPerRow = 5;
+    let rows = 2;
+    this.UIItems = [];
 
     for (let row = 1; row <= rows; row++) {
       for (let cell = 1; cell <= itemsPerRow; cell++) {
-        let rx = x + (25 * cell)
-        let ry = y + 50 + (25 * row)
+        let rx = x + (25 * cell);
+        let ry = y + 50 + (25 * row);
         this.UIItems.push(
           scene.add.rectangle(rx, ry, 20, 20, 0xcfc6b8, 0.3).setOrigin(0)
-        )
+        );
       }
     }
 
-    accumulatedHeight += 90
+    accumulatedHeight += 90;
 
     // Separator
-    scene.add.line(x+5, y+120, 0, 10, 175, 10, 0xcfc6b8).setOrigin(0)
+    scene.add.line(x + 5, y + 120, 0, 10, 175, 10, 0xcfc6b8).setOrigin(0);
 
-    return accumulatedHeight
+    return accumulatedHeight;
   }
 }

@@ -6,13 +6,13 @@ import { removeEntity } from "~/routes/games/rogue0/entity";
 
 export const Sprites = {
   floor: 0,
-  wall: 49 * 13,
+  wall: 49 * 13
 };
 
 const tileSize = 16;
 
 let dungeon = {
-  initialize: function (context: GameContext) {
+  initialize: function(context: GameContext) {
     const level0 = level.map((r) =>
       r.map((t) => (t == 1 ? Sprites.wall : Sprites.floor))
     );
@@ -20,7 +20,7 @@ let dungeon = {
     const config = {
       data: level0,
       tileWidth: tileSize,
-      tileHeight: tileSize,
+      tileHeight: tileSize
     };
 
     context.map = context.scene!.make.tilemap(config);
@@ -34,34 +34,57 @@ let dungeon = {
       1
     );
 
-    if(!tileset) {
-      console.error("Failed to load tileset named tiles")
-      return
+    if (!tileset) {
+      console.error("Failed to load tileset named tiles");
+      return;
     }
 
     context.map.createLayer(0, tileset, 0, 0);
   },
 
-  isWalkableTile: function (context: GameContext, x: number, y: number) {
+  isWalkableTile: function(context: GameContext, x: number, y: number) {
     for (const entity of context.entities) {
-      if (entity.x === x && entity.y === y) return false;
+      if (entity.sprite && entity.x === x && entity.y === y) return false;
     }
 
     const tileAtDestination = context.map?.getTileAt(x, y);
     return tileAtDestination?.index !== Sprites.wall;
   },
 
-  entityAtTile: function (context: GameContext, x: number, y: number) {
+  entityAtTile: function(context: GameContext, x: number, y: number) {
     for (const entity of context.entities) {
-      if (entity.x === x && entity.y === y) return entity;
+      if (entity.sprite && entity.x === x && entity.y === y) return entity;
     }
     return undefined;
   },
 
-  distanceBetweenEntities: function (entity1: Entity, entity2: Entity) {
+  removeEntity: function(context: GameContext, entity: Entity) {
+    const entityIndex = context.entities.findIndex((e) => e === entity)
+    context.entities.splice(entityIndex, 1)
+    entity.sprite!.destroy()
+    entity.sprite = undefined
+    entity.onDestroy()
+  },
+
+  itemPicked: function(entity: Entity) {
+    entity.sprite!.destroy()
+    entity.sprite = undefined
+  },
+
+  initializeEntity: function(context: GameContext, entity: Entity) {
+
+    if (entity.x && entity.y) {
+      let x = context.map!.tileToWorldX(entity.x)
+      let y = context.map!.tileToWorldY(entity.y)
+      entity.sprite = context.scene!.add.sprite(x || 0, y || 0, "tiles", entity.tile)
+      entity.sprite.setOrigin(0)
+    }
+  },
+
+  distanceBetweenEntities: function(entity1: Entity, entity2: Entity) {
     const grid = new PF.Grid(level);
     const finder = new PF.AStarFinder({
-      diagonalMovement: PF.DiagonalMovement.Always,
+      diagonalMovement: PF.DiagonalMovement.Always
     });
     const path = finder.findPath(
       entity1.x,
@@ -73,7 +96,7 @@ let dungeon = {
     return path.length >= 2 ? path.length : 0;
   },
 
-  moveEntityTo: function (
+  moveEntityTo: function(
     context: GameContext,
     entity: Entity,
     x: number,
@@ -94,10 +117,10 @@ let dungeon = {
       x: context.map.tileToWorldX(x),
       y: context.map.tileToWorldY(y),
       ease: "Power2",
-      duration: 200,
+      duration: 200
     });
   },
-  attackEntity: function (
+  attackEntity: function(
     context: GameContext,
     attacker: Entity,
     victim: Entity
@@ -112,15 +135,15 @@ let dungeon = {
     context.scene.tweens.add({
       targets: attacker.sprite,
       onComplete: () => {
-        attacker.sprite.x = context.map?.tileToWorldX(attacker.x)!;
-        attacker.sprite.y = context.map?.tileToWorldX(attacker.y)!;
+        attacker.sprite!.x = context.map?.tileToWorldX(attacker.x)!;
+        attacker.sprite!.y = context.map?.tileToWorldX(attacker.y)!;
         attacker.moving = false;
         attacker.tweens -= 1;
 
         let damage = attacker.attack();
         victim.healthPoints -= damage;
 
-        this.log(context, `${attacker.name} does ${damage} damage to ${victim.name}.`)
+        this.log(context, `${attacker.name} does ${damage} damage to ${victim.name}.`);
 
         if (victim.healthPoints <= 0) {
           removeEntity(context, victim);
@@ -132,12 +155,13 @@ let dungeon = {
       hold: 20,
       duration: 80,
       delay: attacker.tweens * 200,
-      yoyo: true,
+      yoyo: true
     });
   },
+
   log: function(context: GameContext, text: string) {
-    context.messages.unshift(text)
-    context.messages = context.messages.slice(0,8)
+    context.messages.unshift(text);
+    context.messages = context.messages.slice(0, 8);
   }
 };
 

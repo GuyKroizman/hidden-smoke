@@ -1,6 +1,6 @@
 import type { GameContext } from "~/routes/games/rogue0/context.client";
 
-export type EntityType = "player" | "enemy";
+export type EntityType = "player" | "enemy" | "item";
 
 export interface Entity {
   healthPoints: number;
@@ -8,9 +8,10 @@ export interface Entity {
   x: number;
   y: number;
   moving: boolean;
-  sprite: Phaser.GameObjects.Sprite;
+  sprite: Phaser.GameObjects.Sprite | undefined;
   tile: number;
   name: string;
+  description: string;
   type: EntityType;
   UISprite?: Phaser.GameObjects.Sprite;
   UIText?: Phaser.GameObjects.Text;
