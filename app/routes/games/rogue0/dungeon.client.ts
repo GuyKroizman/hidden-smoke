@@ -34,6 +34,11 @@ let dungeon = {
       1
     );
 
+    if(!tileset) {
+      console.error("Failed to load tileset named tiles")
+      return
+    }
+
     context.map.createLayer(0, tileset, 0, 0);
   },
 
