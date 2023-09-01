@@ -22,6 +22,7 @@ export default class PlayerCharacter implements Entity {
   moving: boolean = false;
   sprite: Phaser.GameObjects.Sprite;
   items: any[] = [];
+  UIScene?: Phaser.Scene;
 
   constructor(x: number, y: number, context: GameContext) {
     if (context.map == undefined || context.scene == undefined) {
@@ -88,14 +89,14 @@ export default class PlayerCharacter implements Entity {
 
   }
 
-  removeItemByProperty(property, value) {
-    this.items.forEach(i => {
-      i.UIsprite.destroy();
-      delete i.UIsprite;
-    });
-    this.items = this.items.filter(i => i[property] !== value);
-    this.refreshUI();
-  }
+  // removeItemByProperty(property, value) {
+  //   this.items.forEach(i => {
+  //     i.UIsprite.destroy();
+  //     delete i.UIsprite;
+  //   });
+  //   this.items = this.items.filter(i => i[property] !== value);
+  //   this.refreshUI();
+  // }
 
   equippedItems() {
     return this.items.filter(i => i.active);
@@ -107,7 +108,7 @@ export default class PlayerCharacter implements Entity {
       if (!item.UIsprite) {
         let x = this.UIItems![i].x + 10;
         let y = this.UIItems![i].y + 10;
-        item.UIsprite = this.UIscene.add.sprite(x, y, "tiles", item.tile);
+        item.UIsprite = this.UIScene?.add.sprite(x, y, "tiles", item.tile);
       }
       if (!item.active) {
         item.UIsprite.setAlpha(0.5);
@@ -199,6 +200,10 @@ export default class PlayerCharacter implements Entity {
     this.refreshUI();
   }
 
+  damage(): number {
+    return 0;
+  }
+
   over() {
     let isOver = this.movementPoints == 0 && !this.moving;
 
@@ -217,6 +222,7 @@ export default class PlayerCharacter implements Entity {
   }
 
   createUI({ scene, x, y }: { scene: Phaser.Scene; x: number; y: number }) {
+    this.UIScene = scene;
     let accumulatedHeight = 0;
     // Character sprite and name
     this.UISprite = scene.add.sprite(x, y, "tiles", this.tile).setOrigin(0);

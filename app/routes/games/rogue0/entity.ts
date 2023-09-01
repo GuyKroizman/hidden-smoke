@@ -24,6 +24,8 @@ export interface Entity {
 
   attack(): number;
 
+  damage(): number;
+
   onDestroy(): void;
 
   createUI?(options: { scene: Phaser.Scene, x: number, y: number, width: number }): number;
@@ -33,7 +35,7 @@ export function removeEntity(context: GameContext, entity: Entity) {
   const victimIndexInEntities = context.entities.findIndex((e) => e === entity);
   context.entities.splice(victimIndexInEntities, 1);
 
-  entity.sprite.destroy();
+  entity.sprite?.destroy();
 
   entity.onDestroy();
 }
