@@ -13,6 +13,7 @@ export default class Skeleton implements Entity {
   private context: GameContext;
   moving: boolean;
   readonly name: string;
+  description: string = "A skeleton";
   type: EntityType;
   actionPoints: number;
   healthPoints: number;
@@ -100,6 +101,10 @@ export default class Skeleton implements Entity {
 
   attack() {
     return 1;
+  }
+
+  damage() {
+    return 0;
   }
 
   onDestroy() {

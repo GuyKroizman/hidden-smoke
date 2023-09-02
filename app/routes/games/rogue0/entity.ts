@@ -5,8 +5,8 @@ export type EntityType = "player" | "enemy" | "item";
 export interface Entity {
   healthPoints: number;
   tweens: number;
-  x: number;
-  y: number;
+  x?: number;
+  y?: number;
   moving: boolean;
   sprite: Phaser.GameObjects.Sprite | undefined;
   tile: number;

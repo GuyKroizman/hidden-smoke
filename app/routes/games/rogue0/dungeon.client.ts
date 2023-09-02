@@ -82,6 +82,9 @@ let dungeon = {
   },
 
   distanceBetweenEntities: function(entity1: Entity, entity2: Entity) {
+    if(entity1.x == undefined || entity1.y == undefined || entity2.x == undefined || entity2.y == undefined) {
+      throw new Error(`Error in distanceBetweenEntities: entity ${entity1.name} or ${entity2.name} x or y is undefined`)
+    }
     const grid = new PF.Grid(level);
     const finder = new PF.AStarFinder({
       diagonalMovement: PF.DiagonalMovement.Always
@@ -135,8 +138,8 @@ let dungeon = {
     context.scene.tweens.add({
       targets: attacker.sprite,
       onComplete: () => {
-        attacker.sprite!.x = context.map?.tileToWorldX(attacker.x)!;
-        attacker.sprite!.y = context.map?.tileToWorldX(attacker.y)!;
+        attacker.sprite!.x = context.map?.tileToWorldX(attacker.x!)!;
+        attacker.sprite!.y = context.map?.tileToWorldX(attacker.y!)!;
         attacker.moving = false;
         attacker.tweens -= 1;
 
@@ -149,8 +152,8 @@ let dungeon = {
           removeEntity(context, victim);
         }
       },
-      x: context.map.tileToWorldX(victim.x),
-      y: context.map.tileToWorldY(victim.y),
+      x: context.map.tileToWorldX(victim.x!),
+      y: context.map.tileToWorldY(victim.y!),
       ease: "Power2",
       hold: 20,
       duration: 80,

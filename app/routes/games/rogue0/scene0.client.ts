@@ -27,11 +27,12 @@ export class Scene0 extends Phaser.Scene {
   }
 
   create() {
+    console.log('create scene')
     this.context.scene = this;
 
     dungeon.initialize(this.context);
 
-    let player = new PlayerCharacter(15, 15, this.context);
+    let player = new PlayerCharacter(this.context, 15, 15);
     this.context.entities.push(player)
     this.context.player = player;
 

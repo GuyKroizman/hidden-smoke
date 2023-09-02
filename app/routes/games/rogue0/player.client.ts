@@ -2,6 +2,7 @@ import type { GameContext } from "~/routes/games/rogue0/context.client";
 import dungeon from "~/routes/games/rogue0/dungeon.client";
 
 import type { Entity, EntityType } from "~/routes/games/rogue0/entity";
+import Sword from "~/routes/games/rogue0/items/sword";
 
 export default class PlayerCharacter implements Entity {
   private movementPoints: number;
@@ -17,14 +18,14 @@ export default class PlayerCharacter implements Entity {
   UISprite?: Phaser.GameObjects.Sprite;
   UIHeader?: Phaser.GameObjects.Text;
   UIStatsText?: Phaser.GameObjects.Text;
-  UIItems?: Phaser.GameObjects.Rectangle[];
+  UIItems?: Phaser.GameObjects.Rectangle[] = [];
   tile: number;
   moving: boolean = false;
   sprite: Phaser.GameObjects.Sprite;
   items: any[] = [];
   UIScene?: Phaser.Scene;
 
-  constructor(x: number, y: number, context: GameContext) {
+  constructor(context: GameContext, x: number, y: number) {
     if (context.map == undefined || context.scene == undefined) {
       throw new Error("Error in PlayerCharacter context is undefined");
     }
@@ -38,6 +39,9 @@ export default class PlayerCharacter implements Entity {
     this.name = "Player";
     this.type = "player";
     this.actionPoints = 1;
+
+    this.items.push(new Sword(context))
+    this.toggleItem(context, 0);
 
     let worldX = context.map.tileToWorldX(x);
     let worldY = context.map.tileToWorldY(y);

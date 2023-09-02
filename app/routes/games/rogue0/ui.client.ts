@@ -19,6 +19,7 @@ export class UI extends Phaser.Scene {
     let x = 80 * 16 - 190;
     let y = 10;
 
+    console.log('create ui scene')
     for (let entity of this.context.entities) {
       if (typeof entity.createUI === "function") {
         let height = entity.createUI({

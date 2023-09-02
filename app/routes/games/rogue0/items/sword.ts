@@ -4,8 +4,8 @@ import type { EntityType } from "../entity";
 
 export default class Sword implements Entity{
 
-  x: number;
-  y: number;
+  x?: number;
+  y?: number;
   name: string = "A Sword";
   description: string = "A basic sword. Causes between 1 and 5 damage.";
   type:EntityType =  "item";
@@ -18,11 +18,11 @@ export default class Sword implements Entity{
   moving: boolean = false;
 
 
-  constructor(x: number, y: number, context: GameContext) {
+  constructor(context: GameContext, x?: number, y?: number ) {
     this.x = x;
     this.y = y;
 
-    if (x && y) {
+    if (this.x && this.y) {
       let x = context.map!.tileToWorldX(this.x)
       let y = context.map!.tileToWorldY(this.y)
       this.sprite = context.scene!.add.sprite(x || 0, y || 0, "tiles", this.tile)
