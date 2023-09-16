@@ -16,31 +16,36 @@ export class UI extends Phaser.Scene {
   }
 
   create() {
-    let x = 80 * 16 - 190;
-    let y = 10;
+    this.scene.get("scene0").events.on("entities-created", () => {
+      let x = 80 * 16 - 190;
+      let y = 10;
 
-    console.log('create ui scene')
-    for (let entity of this.context.entities) {
-      if (typeof entity.createUI === "function") {
-        let height = entity.createUI({
-          scene: this,
-          x,
-          y,
-          width: 198,
-        });
-
-        y += height;
+      if (this.context.entities.length == 0) {
+        throw new Error("Initialization order error. UI scene have no entities.");
       }
-    }
 
-    this.add.line(x + 5, y, 0, 10, 175, 10, 0xcfc6b8).setOrigin(0);
+      for (let entity of this.context.entities) {
+        if (typeof entity.createUI === "function") {
+          let height = entity.createUI({
+            scene: this,
+            x,
+            y,
+            width: 198
+          });
 
-    this.log = this.add.text(x + 10, y + 20, "", {
-      font: "12px Arial",
-      color: "#cfc6b8",
-      wordWrap: {
-        width: 180,
-      },
+          y += height;
+        }
+      }
+
+      this.add.line(x + 5, y, 0, 10, 175, 10, 0xcfc6b8).setOrigin(0);
+
+      this.log = this.add.text(x + 10, y + 20, "", {
+        font: "12px Arial",
+        color: "#cfc6b8",
+        wordWrap: {
+          width: 180
+        }
+      });
     });
   }
 

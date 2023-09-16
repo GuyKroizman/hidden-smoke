@@ -42,6 +42,8 @@ export class Scene0 extends Phaser.Scene {
     this.context.entities.push(new Skeleton(this.context,29, 24));
     this.context.entities.push(new Skeleton(this.context,29, 20));
 
+    this.events.emit('entities-created');
+
     // Set camera, causes game viewport to shrink on the right side freeing
     // space for the UI scene.
     let camera = this.cameras.main
