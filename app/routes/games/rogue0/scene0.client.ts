@@ -4,6 +4,7 @@ import type { GameContext } from "~/routes/games/rogue0/context.client";
 import PlayerCharacter from "~/routes/games/rogue0/player.client";
 import turnManager from "~/routes/games/rogue0/turnManager.client";
 import Skeleton from "~/routes/games/rogue0/monsters/skelaton.client";
+import LongSword from "~/routes/games/rogue0/items/longSword";
 
 export class Scene0 extends Phaser.Scene {
   context: GameContext;
@@ -41,6 +42,8 @@ export class Scene0 extends Phaser.Scene {
     this.context.entities.push(new Skeleton(this.context,20, 10));
     this.context.entities.push(new Skeleton(this.context,29, 24));
     this.context.entities.push(new Skeleton(this.context,29, 20));
+
+    this.context.entities.push(new LongSword(this.context, 18, 22))
 
     this.events.emit('entities-created');
 
