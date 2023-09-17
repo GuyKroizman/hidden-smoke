@@ -11,7 +11,7 @@ export default class Gem implements Entity {
   moving: boolean = false;
   sprite: Phaser.GameObjects.Sprite | undefined;
   type: EntityType = "item";
-  tile = 992;
+  tile = 4 * 49 + 23;
 
   constructor(context: GameContext, x?: number, y?: number) {
     this.x = x;
