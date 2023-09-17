@@ -12,7 +12,7 @@ export default class Sword implements Entity{
   healthPoints: number = 0;
   actionPoints: number = 0;
   tweens: number = 0;
-  tile: number = 994;
+  tile: number = 328;
   weapon: boolean = true;
   sprite: Phaser.GameObjects.Sprite | undefined;
   moving: boolean = false;

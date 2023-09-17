@@ -34,7 +34,7 @@ export default class PlayerCharacter implements Entity {
     this.cursors = context.scene!.input.keyboard!.createCursorKeys();
     this.x = x;
     this.y = y;
-    this.tile = 29;
+    this.tile = 26;
     this.healthPoints = 30;
     this.name = "Player";
     this.type = "player";

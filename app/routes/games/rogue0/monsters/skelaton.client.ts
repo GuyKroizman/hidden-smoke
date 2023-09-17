@@ -35,7 +35,7 @@ export default class Skeleton implements Entity {
     this.healthPoints = 4;
     this.x = x;
     this.y = y;
-    this.tile = 26;
+    this.tile = 6 * 49 + 29;
     this.moving = false;
     this.tweens = 0;
 
