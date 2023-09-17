@@ -7,6 +7,7 @@ import Skeleton from "~/routes/games/rogue0/monsters/skelaton.client";
 import LongSword from "~/routes/games/rogue0/items/longSword";
 import Gem from "~/routes/games/rogue0/items/gem";
 import CursedGem from "~/routes/games/rogue0/items/cursedGem";
+import Potion from "~/routes/games/rogue0/items/potion";
 
 export class Scene0 extends Phaser.Scene {
   context: GameContext;
@@ -46,6 +47,7 @@ export class Scene0 extends Phaser.Scene {
     this.context.entities.push(new Skeleton(this.context, 29, 20));
     this.context.entities.push(new Gem(this.context, 21, 21));
     this.context.entities.push(new CursedGem(this.context, 15, 20));
+    this.context.entities.push(new Potion(this.context, 18, 18));
 
     this.context.entities.push(new LongSword(this.context, 18, 22));
 

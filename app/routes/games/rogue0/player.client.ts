@@ -40,7 +40,7 @@ export default class PlayerCharacter implements Entity {
     this.type = "player";
     this.actionPoints = 1;
 
-    this.items.push(new Sword(context))
+    this.items.push(new Sword(context));
     this.toggleItem(context, 0);
 
     let worldX = context.map.tileToWorldX(x);
@@ -93,14 +93,14 @@ export default class PlayerCharacter implements Entity {
 
   }
 
-  // removeItemByProperty(property, value) {
-  //   this.items.forEach(i => {
-  //     i.UIsprite.destroy();
-  //     delete i.UIsprite;
-  //   });
-  //   this.items = this.items.filter(i => i[property] !== value);
-  //   this.refreshUI();
-  // }
+  removeItemByProperty(property: string, value: any) {
+    this.items.forEach(i => {
+      i.UIsprite.destroy();
+      delete i.UIsprite;
+    });
+    this.items = this.items.filter(i => i[property] !== value);
+    this.refreshUI();
+  }
 
   equippedItems() {
     return this.items.filter(i => i.active);
@@ -225,7 +225,11 @@ export default class PlayerCharacter implements Entity {
     return isOver;
   }
 
-  createUI({ scene, x, y }: { scene: Phaser.Scene; x: number; y: number }) {
+  createUI({ scene, x, y }: {
+    scene: Phaser.Scene;
+    x: number;
+    y: number
+  }) {
     this.UIScene = scene;
     let accumulatedHeight = 0;
     // Character sprite and name
