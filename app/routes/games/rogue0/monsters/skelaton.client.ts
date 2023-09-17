@@ -3,6 +3,9 @@ import type { GameContext } from "~/routes/games/rogue0/context.client";
 import PF from "pathfinding";
 import level from "../level.client.js";
 import type { Entity, EntityType } from "~/routes/games/rogue0/entity";
+import Gem from "~/routes/games/rogue0/items/gem";
+import LongSword from "~/routes/games/rogue0/items/longSword";
+import Potion from "~/routes/games/rogue0/items/potion";
 
 export default class Skeleton implements Entity {
   private movementPoints: number;
@@ -45,7 +48,7 @@ export default class Skeleton implements Entity {
     this.sprite.setOrigin(0);
 
     this.name = "Skeleton";
-    this.type = "enemy"
+    this.type = "enemy";
   }
 
   refresh() {
@@ -108,22 +111,47 @@ export default class Skeleton implements Entity {
   }
 
   onDestroy() {
-    dungeon.log(this.context,`${this.name} was killed.`)
-    if(this.UISprite) {
-      this.UISprite.setAlpha(0.2)
-
+    dungeon.log(this.context, `${this.name} was killed.`);
+    if (this.UISprite) {
+      this.UISprite.setAlpha(0.2);
     }
-    if(this.UIText) {
+    if (this.UIText) {
+      this.UIText.setAlpha(0.2);
+    }
 
-    this.UIText.setAlpha(0.2)
+    // loot
+    let x = this.x
+    let y = this.y
+
+    let possibleLoot = [
+      false,
+      false,
+      Gem,
+      LongSword,
+      Potion
+    ]
+
+    let lootIndex = Phaser.Math.Between(0,possibleLoot.length-1)
+    if (possibleLoot[lootIndex]) {
+      let item = possibleLoot[lootIndex]
+      // ignore the warning that false is not constructable because code is only
+      // reachable if item is not false
+      // @ts-ignore
+      this.context.entities.push(new item(this.context, x, y))
+      // @ts-ignore
+      dungeon.log(this.context, `${this.name} drops ${item.name}.`)
     }
   }
 
-  createUI({ scene, x, y }: { scene: Phaser.Scene; x: number; y: number }) {
+  createUI({ scene, x, y }: {
+    scene: Phaser.Scene;
+    x: number;
+    y: number
+  }) {
     this.UISprite = scene.add.sprite(x, y, "tiles", this.tile).setOrigin(0);
     this.UIText = scene.add.text(x + 20, y, this.name, {
       font: "16px Arial",
-      backgroundColor: "#cfc6b8",
+      backgroundColor: "#cfc6b8"
     });
 
     return 30;
