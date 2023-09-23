@@ -120,7 +120,7 @@ let dungeon = {
       x: context.map.tileToWorldX(x),
       y: context.map.tileToWorldY(y),
       ease: "Power2",
-      duration: 200
+      duration: 50
     });
   },
   attackEntity: function(

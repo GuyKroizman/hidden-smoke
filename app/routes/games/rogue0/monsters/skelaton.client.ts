@@ -126,6 +126,8 @@ export default class Skeleton implements Entity {
     let possibleLoot = [
       false,
       false,
+      false,
+      false,
       Gem,
       LongSword,
       Potion
