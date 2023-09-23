@@ -13,6 +13,7 @@ export default class PlayerCharacter implements Entity {
   description: string = "A brave adventurer";
   type: EntityType;
   healthPoints: number;
+  maxHealthPoints: number = 30;
   actionPoints: number;
   tweens: number = 0;
   UISprite?: Phaser.GameObjects.Sprite;
