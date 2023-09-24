@@ -153,7 +153,7 @@ export default class Skeleton implements Entity {
     this.UISprite = scene.add.sprite(x, y, "tiles", this.tile).setOrigin(0);
     this.UIText = scene.add.text(x + 20, y, this.name, {
       font: "16px Arial",
-      backgroundColor: "#cfc6b8"
+      backgroundColor: "#646059"
     });
 
     return 30;

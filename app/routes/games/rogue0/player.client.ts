@@ -4,6 +4,8 @@ import dungeon from "~/routes/games/rogue0/dungeon.client";
 import type { Entity, EntityType } from "~/routes/games/rogue0/entity";
 import Sword from "~/routes/games/rogue0/items/sword";
 
+const UI_HIGHLIGHT_BACKGROUND_COLOR = "#646059";
+
 export default class PlayerCharacter implements Entity {
   private movementPoints: number;
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -214,7 +216,7 @@ export default class PlayerCharacter implements Entity {
 
     if (this.UIHeader) {
       if (isOver) {
-        this.UIHeader.setColor("#cfc6b8");
+        this.UIHeader.setColor(UI_HIGHLIGHT_BACKGROUND_COLOR);
       } else {
         this.UIHeader.setColor("#fff");
       }
@@ -242,7 +244,7 @@ export default class PlayerCharacter implements Entity {
       this.name,
       {
         font: "16px Arial",
-        color: "#cfc6b8"
+        color: UI_HIGHLIGHT_BACKGROUND_COLOR
       });
 
 
@@ -253,7 +255,7 @@ export default class PlayerCharacter implements Entity {
       `Hp: ${this.healthPoints}\nMp: ${this.movementPoints}\nAp: ${this.actionPoints}`,
       {
         font: "12px Arial",
-        backgroundColor: "#cfc6b8"
+        backgroundColor: UI_HIGHLIGHT_BACKGROUND_COLOR
       });
 
     accumulatedHeight += this.UIStatsText.height + this.UISprite.height;
