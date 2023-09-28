@@ -60,7 +60,7 @@ export class Scene0 extends Phaser.Scene {
     let camera = this.cameras.main;
     camera.setViewport(0, 0, camera.worldView.width - 200, camera.worldView.height);
     camera.setBounds(0, 0, camera.worldView.width, camera.worldView.height);
-    camera.startFollow(this.context.player.sprite);
+    camera.startFollow(this.context.player.sprite!);
   }
 
   update() {

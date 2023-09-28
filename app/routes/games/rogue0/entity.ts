@@ -2,31 +2,48 @@ import type { GameContext } from "~/routes/games/rogue0/context.client";
 
 export type EntityType = "player" | "enemy" | "item";
 
-export interface Entity {
-  healthPoints: number;
-  tweens: number;
+export abstract class Entity {
+  healthPoints: number = 0;
+  tweens: number = 0;
   x?: number;
   y?: number;
-  moving: boolean;
+  moving: boolean = false;
   sprite: Phaser.GameObjects.Sprite | undefined;
-  tile: number;
-  name: string;
-  description: string;
-  type: EntityType;
+  tile: number = 0;
+  name: string = "Unknown Entity";
+  description: string = "Unknown Entity Description";
+  type: EntityType = "enemy";
   UISprite?: Phaser.GameObjects.Sprite;
   UIText?: Phaser.GameObjects.Text;
+  context!: GameContext;
 
-  refresh(): void;
+  init(context: GameContext, x?: number, y?: number) {
 
-  turn(context: GameContext): void;
+    this.x = x;
+    this.y = y;
+    this.context = context;
 
-  over(): boolean;
+    if (this.x && this.y) {
+      const x = context.map!.tileToWorldX(this.x);
+      const y = context.map!.tileToWorldY(this.y);
+      this.sprite = context.scene!.add.sprite(x || 0, y || 0, "tiles", this.tile);
+      this.sprite.setOrigin(0);
+    } else {
+      this.sprite = undefined;
+    }
+  }
 
-  attack(): number;
+  abstract refresh(): void;
 
-  damage(): number;
+  abstract turn(context: GameContext): void;
 
-  onDestroy(): void;
+  abstract over(): boolean;
+
+  abstract attack(): number;
+
+  abstract damage(): number;
+
+  abstract onDestroy(): void;
 
   createUI?(options: { scene: Phaser.Scene, x: number, y: number, width: number }): number;
 }

@@ -1,35 +1,19 @@
-import type { Entity } from "~/routes/games/rogue0/entity";
+import { Entity } from "~/routes/games/rogue0/entity";
 import type { GameContext } from "~/routes/games/rogue0/context.client";
 import type { EntityType } from "~/routes/games/rogue0/entity";
 import dungeon from "~/routes/games/rogue0/dungeon.client";
 import { removeEntity } from "~/routes/games/rogue0/entity";
 
-export default class HolyPotion implements Entity {
-  x?: number;
-  y?: number;
+export default class HolyPotion extends Entity {
   name: string = "Holy Potion";
   description: string = "A potion that removes cursed items when equipped.";
-  healthPoints: number = 0;
-  tweens: number = 0;
   moving: boolean = false;
-  sprite: Phaser.GameObjects.Sprite | undefined;
   type: EntityType = "item";
   tile = 13 * 49 + 33;
-  context: GameContext;
 
   constructor(context: GameContext, x?: number, y?: number) {
-    this.x = x;
-    this.y = y;
-    this.context = context;
-
-    if (this.x && this.y) {
-      let x = context.map!.tileToWorldX(this.x);
-      let y = context.map!.tileToWorldY(this.y);
-      this.sprite = context.scene!.add.sprite(x || 0, y || 0, "tiles", this.tile);
-      this.sprite.setOrigin(0);
-    } else {
-      this.sprite = undefined;
-    }
+    super();
+    this.init(context, x, y);
   }
 
   equip(itemNumber: number) {

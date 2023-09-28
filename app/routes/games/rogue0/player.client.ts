@@ -1,16 +1,15 @@
 import type { GameContext } from "~/routes/games/rogue0/context.client";
 import dungeon from "~/routes/games/rogue0/dungeon.client";
 
-import type { Entity, EntityType } from "~/routes/games/rogue0/entity";
+import type { EntityType } from "~/routes/games/rogue0/entity";
+import { Entity } from "~/routes/games/rogue0/entity";
 import Sword from "~/routes/games/rogue0/items/sword";
 
 const UI_HIGHLIGHT_BACKGROUND_COLOR = "#646059";
 
-export default class PlayerCharacter implements Entity {
+export default class PlayerCharacter extends Entity {
   private movementPoints: number;
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
-  x: number;
-  y: number;
   name: string;
   description: string = "A brave adventurer";
   type: EntityType;
@@ -22,22 +21,20 @@ export default class PlayerCharacter implements Entity {
   UIHeader?: Phaser.GameObjects.Text;
   UIStatsText?: Phaser.GameObjects.Text;
   UIItems?: Phaser.GameObjects.Rectangle[] = [];
-  tile: number;
+  tile: number= 26;
   moving: boolean = false;
-  sprite: Phaser.GameObjects.Sprite;
   items: any[] = [];
   UIScene?: Phaser.Scene;
 
   constructor(context: GameContext, x: number, y: number) {
+    super();
+    this.init(context, x, y);
     if (context.map == undefined || context.scene == undefined) {
       throw new Error("Error in PlayerCharacter context is undefined");
     }
 
     this.movementPoints = 1;
     this.cursors = context.scene!.input.keyboard!.createCursorKeys();
-    this.x = x;
-    this.y = y;
-    this.tile = 26;
     this.healthPoints = 30;
     this.name = "Player";
     this.type = "player";
@@ -45,11 +42,6 @@ export default class PlayerCharacter implements Entity {
 
     this.items.push(new Sword(context));
     this.toggleItem(context, 0);
-
-    let worldX = context.map.tileToWorldX(x);
-    let worldY = context.map.tileToWorldY(y);
-    this.sprite = context.scene.add.sprite(worldX!, worldY!, "tiles", this.tile);
-    this.sprite.setOrigin(0);
 
     context.scene!.input.keyboard!.on("keyup", (event: KeyboardEvent) => {
 
@@ -145,6 +137,9 @@ export default class PlayerCharacter implements Entity {
   }
 
   turn(context: GameContext) {
+    if(this.x == undefined || this.y == undefined) {
+      throw new Error("Error in PlayerCharacter turn: x or y is undefined");
+    }
     let oldX = this.x;
     let oldY = this.y;
     let moved = false;
@@ -201,7 +196,7 @@ export default class PlayerCharacter implements Entity {
 
 
     if (this.healthPoints <= 6) {
-      this.sprite.tint = Phaser.Display.Color.GetColor(255, 0, 0);
+      this.sprite!.tint = Phaser.Display.Color.GetColor(255, 0, 0);
     }
 
     this.refreshUI();

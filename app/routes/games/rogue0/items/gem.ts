@@ -1,30 +1,16 @@
-import type { Entity, EntityType } from "~/routes/games/rogue0/entity";
+import { Entity } from "~/routes/games/rogue0/entity";
+import type { EntityType } from "~/routes/games/rogue0/entity";
 import type { GameContext } from "~/routes/games/rogue0/context.client";
 
-export default class Gem implements Entity {
-  x?: number;
-  y?: number;
+export default class Gem extends Entity {
   name: string = "Gem";
   description: string = "A gem";
-  healthPoints: number = 0;
-  tweens: number = 0;
-  moving: boolean = false;
-  sprite: Phaser.GameObjects.Sprite | undefined;
   type: EntityType = "item";
   tile = 4 * 49 + 23;
 
   constructor(context: GameContext, x?: number, y?: number) {
-    this.x = x;
-    this.y = y;
-
-    if (this.x && this.y) {
-      let x = context.map!.tileToWorldX(this.x);
-      let y = context.map!.tileToWorldY(this.y);
-      this.sprite = context.scene!.add.sprite(x || 0, y || 0, "tiles", this.tile);
-      this.sprite.setOrigin(0);
-    } else {
-      this.sprite = undefined;
-    }
+    super();
+    this.init(context, x, y);
   }
 
   damage() {
