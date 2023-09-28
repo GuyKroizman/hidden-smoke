@@ -4,8 +4,8 @@ import PF from "pathfinding";
 import level from "../level.client.js";
 import type { Entity, EntityType } from "~/routes/games/rogue0/entity";
 import Gem from "~/routes/games/rogue0/items/gem";
-import LongSword from "~/routes/games/rogue0/items/longSword";
-import Potion from "~/routes/games/rogue0/items/potion";
+import HolyPotion from "~/routes/games/rogue0/items/holyPotion";
+import BerserkPotion from "~/routes/games/rogue0/items/berserkPotion";
 
 export default class Skeleton implements Entity {
   private movementPoints: number;
@@ -129,8 +129,8 @@ export default class Skeleton implements Entity {
       false,
       false,
       Gem,
-      LongSword,
-      Potion
+      HolyPotion,
+      BerserkPotion,
     ]
 
     let lootIndex = Phaser.Math.Between(0,possibleLoot.length-1)

@@ -2,8 +2,9 @@ import type { Entity } from "~/routes/games/rogue0/entity";
 import type { GameContext } from "~/routes/games/rogue0/context.client";
 import type { EntityType } from "~/routes/games/rogue0/entity";
 import dungeon from "~/routes/games/rogue0/dungeon.client";
+import { removeEntity } from "~/routes/games/rogue0/entity";
 
-export default class Potion implements Entity {
+export default class HolyPotion implements Entity {
   x?: number;
   y?: number;
   name: string = "Holy Potion";
@@ -38,6 +39,7 @@ export default class Potion implements Entity {
     dungeon.log(this.context, `A blessing passes through your body and removes all cursed items.`);
     this.context.player.removeItemByProperty("cursed", true);
     this.context.player.removeItem(itemNumber);
+    removeEntity(this.context, this);
   }
 
   damage() {
