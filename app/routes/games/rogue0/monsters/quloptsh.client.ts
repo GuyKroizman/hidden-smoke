@@ -15,7 +15,7 @@ export default class Quloptsh extends Entity {
   type: EntityType = "enemy";
   actionPoints: number = 0;
   healthPoints: number = 10;
-  tweens: number = 50;
+  tweens: number = 1;
   UISprite?: Phaser.GameObjects.Sprite;
   UIText?: Phaser.GameObjects.Text;
 
