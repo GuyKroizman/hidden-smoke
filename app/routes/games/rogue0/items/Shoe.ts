@@ -9,7 +9,7 @@ export default class Shoe extends Entity {
   description: string = "A shoe";
   moving: boolean = false;
   type: EntityType = "item";
-  tile = 14 * 49 + 23;
+  tile: number = 19 * 49 + 32;
 
   constructor(context: GameContext, x?: number, y?: number) {
     super();
