@@ -1,56 +1,39 @@
-import dungeon from "~/routes/games/rogue0/dungeon.client";
+import { Entity } from "~/routes/games/rogue0/entity";
+import type { EntityType } from "~/routes/games/rogue0/entity";
 import type { GameContext } from "~/routes/games/rogue0/context.client";
 import PF from "pathfinding";
 import level from "../level.client.js";
-import { Entity} from "~/routes/games/rogue0/entity";
-import type { EntityType } from "~/routes/games/rogue0/entity";
-import Gem from "~/routes/games/rogue0/items/gem";
-import HolyPotion from "~/routes/games/rogue0/items/holyPotion";
-import BerserkPotion from "~/routes/games/rogue0/items/berserkPotion";
+import dungeon from "~/routes/games/rogue0/dungeon.client";
+import Shoe from "~/routes/games/rogue0/items/Shoe";
 
-export default class Skeleton extends Entity {
-  private movementPoints: number;
-  tile: number;
-  moving: boolean;
-  readonly name: string;
-  description: string = "A skeleton";
-  type: EntityType;
-  actionPoints: number;
-  healthPoints: number;
+export default class Quloptsh extends Entity {
+  movementPoints: number = 1;
+  tile: number = 6 * 49 + 30;
+  moving: boolean = false;
+  name: string = "Quloptsh";
+  description: string = "A calm Quloptsh";
+  type: EntityType = "enemy";
+  actionPoints: number = 0;
+  healthPoints: number = 10;
   tweens: number = 50;
   UISprite?: Phaser.GameObjects.Sprite;
   UIText?: Phaser.GameObjects.Text;
 
   constructor(context: GameContext, x: number, y: number) {
     super();
-    if (
-      context.map == undefined ||
-      context.scene == undefined ||
-      context.player == undefined
-    ) {
-      throw new Error("Error in Skeleton context is undefined");
-    }
-
-    this.movementPoints = 1;
-    this.actionPoints = 1;
-    this.healthPoints = 4;
-    this.tile = 6 * 49 + 29;
-    this.moving = false;
-
     this.init(context, x, y);
-
-    this.name = "Skeleton";
-    this.type = "enemy";
   }
 
   refresh() {
-    this.movementPoints = 1;
-    this.actionPoints = 1;
+    if (this.context.player?.items.find(item => item.name === "Shoe")) {
+      this.movementPoints = 1;
+      this.actionPoints = 1;
+    }
   }
 
   turn() {
     if (!this.context.player) {
-      throw new Error("Error in Skeleton context.player is undefined");
+      throw new Error("Error in Quloptsh context.player is undefined");
     }
     let oldX = this.x;
     let oldY = this.y;
@@ -99,7 +82,7 @@ export default class Skeleton extends Entity {
     return 1;
   }
 
-  damage() {
+  damage(): number {
     return 0;
   }
 
@@ -113,30 +96,26 @@ export default class Skeleton extends Entity {
     }
 
     // loot
-    let x = this.x
-    let y = this.y
+    let x = this.x;
+    let y = this.y;
 
     let possibleLoot = [
       false,
-      false,
-      false,
-      false,
-      Gem,
-      HolyPotion,
-      BerserkPotion,
-    ]
+      Shoe,
+    ];
 
-    let lootIndex = Phaser.Math.Between(0,possibleLoot.length-1)
+    let lootIndex = Phaser.Math.Between(0, possibleLoot.length - 1);
     if (possibleLoot[lootIndex]) {
-      let item = possibleLoot[lootIndex]
+      let item = possibleLoot[lootIndex];
       // ignore the warning that false is not constructable because code is only
       // reachable if item is not false
       // @ts-ignore
-      this.context.entities.push(new item(this.context, x, y))
+      this.context.entities.push(new item(this.context, x, y));
       // @ts-ignore
-      dungeon.log(this.context, `${this.name} drops ${item.name}.`)
+      dungeon.log(this.context, `${this.name} drops ${item.name}.`);
     }
   }
+
 
   createUI({ scene, x, y }: {
     scene: Phaser.Scene;
@@ -152,3 +131,4 @@ export default class Skeleton extends Entity {
     return 30;
   }
 }
+

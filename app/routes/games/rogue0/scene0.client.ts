@@ -9,6 +9,8 @@ import Gem from "~/routes/games/rogue0/items/gem";
 import CursedGem from "~/routes/games/rogue0/items/cursedGem";
 import HolyPotion from "~/routes/games/rogue0/items/holyPotion";
 import HealingPotion from "~/routes/games/rogue0/items/healingPotion";
+import Shoe from "~/routes/games/rogue0/items/Shoe";
+import Quloptsh from "~/routes/games/rogue0/monsters/quloptsh.client";
 
 export class Scene0 extends Phaser.Scene {
   context: GameContext;
@@ -52,6 +54,8 @@ export class Scene0 extends Phaser.Scene {
 
     this.context.entities.push(new LongSword(this.context, 18, 22));
     this.context.entities.push(new HealingPotion(this.context, 18, 23));
+    this.context.entities.push(new Shoe(this.context, 15, 16));
+    this.context.entities.push(new Quloptsh(this.context, 12, 17));
 
     this.events.emit("entities-created");
 
