@@ -18,6 +18,9 @@ export default class CursedGem extends Entity {
     this.init(context, x, y);
   }
 
+  equip(itemNumber: number) {
+  }
+
   damage() {
     return Phaser.Math.Between(4, 8);
   }

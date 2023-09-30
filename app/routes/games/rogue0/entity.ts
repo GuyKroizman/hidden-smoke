@@ -16,6 +16,9 @@ export abstract class Entity {
   UISprite?: Phaser.GameObjects.Sprite;
   UIText?: Phaser.GameObjects.Text;
   context!: GameContext;
+  weapon: boolean = false;
+  attackTile: number = 11 * 49 + 11;
+  active: boolean = false;
 
   init(context: GameContext, x?: number, y?: number) {
 
@@ -32,6 +35,8 @@ export abstract class Entity {
       this.sprite = undefined;
     }
   }
+
+  abstract equip(itemNumber: number): void;
 
   abstract refresh(): void;
 

@@ -21,7 +21,7 @@ export default class PlayerCharacter extends Entity {
   UIHeader?: Phaser.GameObjects.Text;
   UIStatsText?: Phaser.GameObjects.Text;
   UIItems?: Phaser.GameObjects.Rectangle[] = [];
-  tile: number= 26;
+  tile: number = 26;
   moving: boolean = false;
   items: any[] = [];
   UIScene?: Phaser.Scene;
@@ -85,7 +85,6 @@ export default class PlayerCharacter extends Entity {
       this.items = this.items.filter(i => i !== item);
       this.refreshUI();
     }
-
   }
 
   removeItemByProperty(property: string, value: any) {
@@ -137,7 +136,7 @@ export default class PlayerCharacter extends Entity {
   }
 
   turn(context: GameContext) {
-    if(this.x == undefined || this.y == undefined) {
+    if (this.x == undefined || this.y == undefined) {
       throw new Error("Error in PlayerCharacter turn: x or y is undefined");
     }
     let oldX = this.x;
@@ -174,7 +173,7 @@ export default class PlayerCharacter extends Entity {
           let entity = dungeon.entityAtTile(context, newX, newY);
 
           if (entity && entity.type === "enemy" && this.actionPoints > 0) {
-            dungeon.attackEntity(context, this, entity);
+            dungeon.attackEntity(context, this, entity, 0);
             this.actionPoints -= 1;
           }
 
@@ -276,5 +275,17 @@ export default class PlayerCharacter extends Entity {
     scene.add.line(x + 5, y + 120, 0, 10, 175, 10, 0xcfc6b8).setOrigin(0);
 
     return accumulatedHeight;
+  }
+
+  equip(itemNumber: number) {
+    return 0;
+  }
+
+  protection() {
+    return 0;
+  }
+
+  range() {
+    return 0;
   }
 }
