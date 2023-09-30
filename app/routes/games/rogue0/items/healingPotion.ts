@@ -43,6 +43,14 @@ export default class HealingPotion extends Entity {
     return 0;
   }
 
+  protection(): number {
+    return 0;
+  }
+
+  range(): number {
+    return 0;
+  }
+
   onDestroy() {
   }
 }

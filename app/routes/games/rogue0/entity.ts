@@ -41,6 +41,10 @@ export abstract class Entity {
 
   abstract attack(): number;
 
+  abstract protection(): number;
+
+  abstract range(): number;
+
   abstract damage(): number;
 
   abstract onDestroy(): void;

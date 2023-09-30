@@ -57,6 +57,14 @@ export default class BerserkPotion extends Entity {
     return 0;
   }
 
+  protection(): number {
+    return 0;
+  }
+
+  range(): number {
+    return 0;
+  }
+
   onDestroy() {
   }
 }

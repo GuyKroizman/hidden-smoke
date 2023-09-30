@@ -59,31 +59,31 @@ let dungeon = {
   },
 
   removeEntity: function(context: GameContext, entity: Entity) {
-    const entityIndex = context.entities.findIndex((e) => e === entity)
-    context.entities.splice(entityIndex, 1)
-    entity.sprite!.destroy()
-    entity.sprite = undefined
-    entity.onDestroy()
+    const entityIndex = context.entities.findIndex((e) => e === entity);
+    context.entities.splice(entityIndex, 1);
+    entity.sprite!.destroy();
+    entity.sprite = undefined;
+    entity.onDestroy();
   },
 
   itemPicked: function(entity: Entity) {
-    entity.sprite!.destroy()
-    entity.sprite = undefined
+    entity.sprite!.destroy();
+    entity.sprite = undefined;
   },
 
   initializeEntity: function(context: GameContext, entity: Entity) {
 
     if (entity.x && entity.y) {
-      let x = context.map!.tileToWorldX(entity.x)
-      let y = context.map!.tileToWorldY(entity.y)
-      entity.sprite = context.scene!.add.sprite(x || 0, y || 0, "tiles", entity.tile)
-      entity.sprite.setOrigin(0)
+      let x = context.map!.tileToWorldX(entity.x);
+      let y = context.map!.tileToWorldY(entity.y);
+      entity.sprite = context.scene!.add.sprite(x || 0, y || 0, "tiles", entity.tile);
+      entity.sprite.setOrigin(0);
     }
   },
 
   distanceBetweenEntities: function(entity1: Entity, entity2: Entity) {
-    if(entity1.x == undefined || entity1.y == undefined || entity2.x == undefined || entity2.y == undefined) {
-      throw new Error(`Error in distanceBetweenEntities: entity ${entity1.name} or ${entity2.name} x or y is undefined`)
+    if (entity1.x == undefined || entity1.y == undefined || entity2.x == undefined || entity2.y == undefined) {
+      throw new Error(`Error in distanceBetweenEntities: entity ${entity1.name} or ${entity2.name} x or y is undefined`);
     }
     const grid = new PF.Grid(level);
     const finder = new PF.AStarFinder({
@@ -126,7 +126,8 @@ let dungeon = {
   attackEntity: function(
     context: GameContext,
     attacker: Entity,
-    victim: Entity
+    victim: Entity,
+    rangedAttack: number
   ) {
     if (!context.scene || !context.map) {
       throw new Error("context scene or map are missing");
@@ -135,31 +136,65 @@ let dungeon = {
     attacker.tweens = attacker.tweens || 0;
     attacker.tweens += 1;
 
-    context.scene.tweens.add({
-      targets: attacker.sprite,
-      onComplete: () => {
-        attacker.sprite!.x = context.map?.tileToWorldX(attacker.x!)!;
-        attacker.sprite!.y = context.map?.tileToWorldX(attacker.y!)!;
-        attacker.moving = false;
-        attacker.tweens -= 1;
+    if (!rangedAttack) {
+      context.scene.tweens.add({
+        targets: attacker.sprite,
+        onComplete: () => {
+          attacker.sprite!.x = context.map?.tileToWorldX(attacker.x!)!;
+          attacker.sprite!.y = context.map?.tileToWorldX(attacker.y!)!;
+          attacker.moving = false;
+          attacker.tweens -= 1;
 
-        let damage = attacker.attack();
-        victim.healthPoints -= damage;
+          let damage = attacker.attack();
+          victim.healthPoints -= damage;
 
-        this.log(context, `${attacker.name} does ${damage} damage to ${victim.name}.`);
+          this.log(context, `${attacker.name} does ${damage} damage to ${victim.name}.`);
 
-        if (victim.healthPoints <= 0) {
-          removeEntity(context, victim);
-        }
-      },
-      x: context.map.tileToWorldX(victim.x!),
-      y: context.map.tileToWorldY(victim.y!),
-      ease: "Power2",
-      hold: 20,
-      duration: 80,
-      delay: attacker.tweens * 200,
-      yoyo: true
-    });
+          if (victim.healthPoints <= 0) {
+            removeEntity(context, victim);
+          }
+        },
+        x: context.map.tileToWorldX(victim.x!),
+        y: context.map.tileToWorldY(victim.y!),
+        ease: "Power2",
+        hold: 20,
+        duration: 80,
+        delay: attacker.tweens * 200,
+        yoyo: true
+      });
+    } else {
+      const x = context.map.tileToWorldX(attacker.x!);
+      const y = context.map.tileToWorldX(attacker.y!);
+      const sprite = context.scene.add.sprite(x!, y!, "tiles"/*, rangedAttack*/).setOrigin(0);
+
+      context.scene.tweens.add({
+        targets: sprite,
+        onComplete: () => {
+          attacker.moving = false;
+          attacker.tweens -= 1;
+
+          let attack = attacker.attack();
+          let protection = victim.protection();
+          let damage = attack - protection;
+          if (damage > 0) {
+            victim.healthPoints -= damage;
+
+            this.log(context, `${attacker.name} does ${damage} damage to ${victim.name}.`);
+
+            if (victim.healthPoints <= 0) {
+              removeEntity(context, victim);
+            }
+          }
+          sprite.destroy();
+        },
+        x: context.map.tileToWorldX(victim.x!),
+        y: context.map.tileToWorldY(victim.y!),
+        ease: "Power2",
+        hold: 20,
+        duration: 180,
+        delay: attacker.tweens * 200
+      });
+    }
   },
 
   log: function(context: GameContext, text: string) {

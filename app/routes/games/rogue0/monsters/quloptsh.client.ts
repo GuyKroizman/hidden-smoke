@@ -116,6 +116,14 @@ export default class Quloptsh extends Entity {
     }
   }
 
+  protection(): number {
+    return 0;
+  }
+
+  range(): number {
+    return 0;
+  }
+
 
   createUI({ scene, x, y }: {
     scene: Phaser.Scene;
