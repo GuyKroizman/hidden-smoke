@@ -237,6 +237,7 @@ export default class BasicHero extends Entity {
     if (this.UIHeader) {
       if (isOver) {
         this.UIHeader.setColor(UI_HIGHLIGHT_BACKGROUND_COLOR);
+        this.actionPoints = 0;
       } else {
         this.UIHeader.setColor("#fff");
       }
@@ -324,5 +325,16 @@ export default class BasicHero extends Entity {
         this.UIItems![i].setStrokeStyle(1, 0xffffff);
       }
     }
+  }
+
+  damage(): number {
+    return 0;
+  }
+
+  equip(itemNumber: number): void {
+  }
+
+  range(): number {
+    return 0;
   }
 }
