@@ -1,0 +1,46 @@
+import type { GameContext } from "../context.client";
+import { Entity } from "../entity";
+
+export default class Axe extends Entity {
+  constructor(context: GameContext, x?: number, y?: number) {
+    super();
+    this.tile = 934;
+    this.name = "An Axe";
+    this.description = "A basic axe. Causes between 2 and 7 damage.";
+    this.weapon = true;
+
+    this.init(context, x, y);
+  }
+
+  equip(itemNumber: number) {
+  }
+
+  damage() {
+    return Phaser.Math.Between(2, 7);
+  }
+
+  turn() {
+  }
+
+  refresh() {
+  }
+
+  over() {
+    return true;
+  }
+
+  attack(): number {
+    return 0;
+  }
+
+  protection(): number {
+    return 0;
+  }
+
+  range(): number {
+    return 0;
+  }
+
+  onDestroy() {
+  }
+}

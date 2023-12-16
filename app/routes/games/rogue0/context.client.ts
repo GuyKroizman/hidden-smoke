@@ -1,11 +1,10 @@
-import type PlayerCharacter from "~/routes/games/rogue0/player.client";
-
 import type { Entity } from "~/routes/games/rogue0/entity";
+import type BasicHero from "~/routes/games/rogue0/classes/basicHero.client";
 
 export type GameContext = {
   map: Phaser.Tilemaps.Tilemap | undefined;
   scene: Phaser.Scene | undefined;
-  player?: PlayerCharacter;
+  player?: BasicHero;
   entities: Entity[];
   messages: string[];
 };

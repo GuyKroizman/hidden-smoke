@@ -1,16 +1,16 @@
 import Phaser from "phaser";
-import dungeon from "~/routes/games/rogue0/dungeon.client";
-import type { GameContext } from "~/routes/games/rogue0/context.client";
-import PlayerCharacter from "~/routes/games/rogue0/player.client";
-import turnManager from "~/routes/games/rogue0/turnManager.client";
-import Skeleton from "~/routes/games/rogue0/monsters/skelaton.client";
-import LongSword from "~/routes/games/rogue0/items/longSword";
-import Gem from "~/routes/games/rogue0/items/gem";
-import CursedGem from "~/routes/games/rogue0/items/cursedGem";
-import HolyPotion from "~/routes/games/rogue0/items/holyPotion";
-import HealingPotion from "~/routes/games/rogue0/items/healingPotion";
-import Shoe from "~/routes/games/rogue0/items/Shoe";
-import Quloptsh from "~/routes/games/rogue0/monsters/quloptsh.client";
+import dungeon from "./dungeon.client";
+import type { GameContext } from "./context.client";
+import turnManager from "./turnManager.client";
+import Skeleton from "./monsters/skelaton.client";
+import LongSword from "./items/longSword";
+import Gem from "./items/gem";
+import CursedGem from "./items/cursedGem";
+import HolyPotion from "./items/holyPotion";
+import HealingPotion from "./items/healingPotion";
+import Shoe from "./items/Shoe";
+import Quloptsh from "./monsters/quloptsh.client";
+import classes from "./classes.client";
 
 export class Scene0 extends Phaser.Scene {
   context: GameContext;
@@ -39,7 +39,7 @@ export class Scene0 extends Phaser.Scene {
 
     dungeon.initialize(this.context);
 
-    let player = new PlayerCharacter(this.context, 15, 15);
+    let player = new classes.Warrior(this.context, 15, 15);
     this.context.entities.push(player);
     this.context.player = player;
 

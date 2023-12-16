@@ -24,6 +24,7 @@ export default class BasicHero extends Entity {
 
   constructor(context: GameContext, x: number, y: number) {
     super();
+    this.init(context, x, y);
     this.x = x;
     this.y = y;
 
@@ -114,8 +115,7 @@ export default class BasicHero extends Entity {
     const items = this.equippedItems();
     const combineProtection = (total: number, item: Entity) => total + item.protection();
 
-    const protection = items.reduce(combineProtection, 0);
-    return protection;
+    return items.reduce(combineProtection, 0);
   }
 
   refresh() {

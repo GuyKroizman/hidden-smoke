@@ -1,7 +1,7 @@
 import BasicHero from "./basicHero.client";
-import type { GameContext } from "~/routes/games/rogue0/context.client";
-import Sword from "~/routes/games/rogue0/items/sword";
-import dungeon from "~/routes/games/rogue0/dungeon.client";
+import type { GameContext } from "../context.client";
+import Sword from "../items/sword";
+import dungeon from "../dungeon.client";
 
 export default class Warrior extends BasicHero {
 
