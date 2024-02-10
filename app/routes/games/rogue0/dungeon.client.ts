@@ -100,7 +100,6 @@ let dungeon = {
     }
     entity.moving = true;
 
-    console.log("moveEntityTo", entity.name);
     context.scene.tweens.add({
       targets: entity.sprite,
       onComplete: () => {

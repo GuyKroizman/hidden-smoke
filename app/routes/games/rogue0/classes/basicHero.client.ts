@@ -32,13 +32,13 @@ export default class BasicHero extends Entity {
       throw new Error("Error in PlayerCharacter context is undefined");
     }
 
-    context.scene.input.keyboard.on("keyup", (event: KeyboardEvent) => {
+    context.scene.input.keyboard.on("keydown", (event: KeyboardEvent) => {
       if (!this.over()) {
         this.processInput(event);
       }
     });
 
-    context.scene.input.on("pointerup", (event: MouseEvent) => {
+    context.scene.input.on("pointerup", (event: Phaser.Input.Pointer) => {
       if (!this.over()) {
         this.processTouchInput(context, event);
       }
@@ -123,8 +123,8 @@ export default class BasicHero extends Entity {
     this.actionPoints = 1;
   }
 
-  processTouchInput(context: GameContext, event: any) {
-    if(context.map == undefined) {
+  processTouchInput(context: GameContext, event: Phaser.Input.Pointer) {
+    if (context.map == undefined) {
       throw new Error("context.map is undefined");
     }
     let x = context.map.worldToTileX(event.worldX);
@@ -134,7 +134,7 @@ export default class BasicHero extends Entity {
 
     if (entity && entity.type == "enemy" && this.actionPoints > 0) {
       const currentWeapon = this.currentWeapon();
-      if(!currentWeapon) {
+      if (!currentWeapon) {
         return;
       }
       const rangedAttack = currentWeapon.range() > 0 ? currentWeapon.attackTile || currentWeapon.tile : false;
@@ -146,7 +146,7 @@ export default class BasicHero extends Entity {
     }
   }
 
-  processInput(event: any) {
+  processInput(event: KeyboardEvent) {
     let oldX = this.x!;
     let oldY = this.y!;
     let moved = false;
@@ -158,36 +158,37 @@ export default class BasicHero extends Entity {
     // Equip items
     if (!isNaN(Number(key))) {
 
-      if (key == 0) {
-        key = 10;
+      let keyNumber = Number(key);
+      if (keyNumber == 0) {
+        keyNumber = 10;
       }
 
-      this.toggleItem(this.context, key - 1);
+      this.toggleItem(this.context, keyNumber - 1);
     }
 
     // Pass the turn
-    if (event.keyCode == 32) {
+    if (event.key == " ") {
       this.movementPoints = 0;
       this.actionPoints = 0;
     }
 
     // Movement decision
-    if (event.key == "ArrowLeft") {
+    if (event.key == "ArrowLeft" || event.key === "h") {
       newX -= 1;
       moved = true;
     }
 
-    if (event.key == "ArrowRight") {
+    if (event.key == "ArrowRight" || event.key === "l") {
       newX += 1;
       moved = true;
     }
 
-    if (event.key == "ArrowUp") {
+    if (event.key == "ArrowUp" || event.key === "k") {
       newY -= 1;
       moved = true;
     }
 
-    if (event.key == "ArrowDown") {
+    if (event.key == "ArrowDown" || event.key === "j") {
       newY += 1;
       moved = true;
     }
@@ -202,7 +203,7 @@ export default class BasicHero extends Entity {
         // Check if entity at destination is an enemy
         if (entity && entity.type == "enemy" && this.actionPoints > 0) {
           const currentWeapon = this.currentWeapon();
-          if(!currentWeapon) {
+          if (!currentWeapon) {
             return;
           }
           const rangedAttack = currentWeapon.range() > 0 ? currentWeapon.attackTile || currentWeapon.tile : 0;
