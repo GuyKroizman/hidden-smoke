@@ -24,6 +24,10 @@ export default class Quloptsh extends Entity {
     this.init(context, x, y);
   }
 
+  equip(itemNumber: number) {
+    return;
+  }
+
   refresh() {
     if (this.context.player?.items.find(item => item.name === "Shoe")) {
       this.movementPoints = 1;
@@ -56,7 +60,8 @@ export default class Quloptsh extends Entity {
 
       if (this.actionPoints > 0) {
         if (dungeon.distanceBetweenEntities(this, this.context.player) <= 2) {
-          dungeon.attackEntity(this.context, this, this.context.player);
+          const NOT_RANGED_ATTACK = 0;
+          dungeon.attackEntity(this.context, this, this.context.player, NOT_RANGED_ATTACK);
         }
         this.actionPoints -= 1;
       }
@@ -101,7 +106,7 @@ export default class Quloptsh extends Entity {
 
     let possibleLoot = [
       false,
-      Shoe,
+      Shoe
     ];
 
     let lootIndex = Phaser.Math.Between(0, possibleLoot.length - 1);

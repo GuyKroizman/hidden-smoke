@@ -40,6 +40,10 @@ export default class Skeleton extends Entity {
     this.init(context, x, y);
   }
 
+  equip(itemNumber: number) {
+    return;
+  }
+
   refresh() {
     this.movementPoints = 1;
     this.actionPoints = 1;
@@ -67,8 +71,9 @@ export default class Skeleton extends Entity {
       this.movementPoints -= 1;
 
       if (this.actionPoints > 0) {
-        if(path.length <= 2) {
-          dungeon.attackEntity(this.context, this, this.context.player);
+        if (path.length <= 2) {
+          const NOT_RANGED_ATTACK = 0;
+          dungeon.attackEntity(this.context, this, this.context.player, NOT_RANGED_ATTACK);
         }
         this.actionPoints -= 1;
       }

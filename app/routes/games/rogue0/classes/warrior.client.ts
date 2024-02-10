@@ -1,7 +1,6 @@
 import BasicHero from "./basicHero.client";
 import type { GameContext } from "../context.client";
 import Sword from "../items/sword";
-import dungeon from "../dungeon.client";
 
 export default class Warrior extends BasicHero {
 
@@ -14,8 +13,6 @@ export default class Warrior extends BasicHero {
 
     this.items.push(new Sword(context))
     this.toggleItem(context, 0)
-
-    dungeon.initializeEntity(context, this)
   }
 
   refresh() {

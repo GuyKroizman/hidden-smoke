@@ -19,8 +19,6 @@ export default class Dwarf extends BasicHero {
 
     this.items.push(new Shield(context));
     this.toggleItem(context, 1);
-
-    dungeon.initializeEntity(context, this);
   }
 
   refresh() {

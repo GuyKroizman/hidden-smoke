@@ -71,16 +71,6 @@ let dungeon = {
     entity.sprite = undefined;
   },
 
-  initializeEntity: function(context: GameContext, entity: Entity) {
-
-    if (entity.x && entity.y) {
-      let x = context.map!.tileToWorldX(entity.x);
-      let y = context.map!.tileToWorldY(entity.y);
-      entity.sprite = context.scene!.add.sprite(x || 0, y || 0, "tiles", entity.tile);
-      entity.sprite.setOrigin(0);
-    }
-  },
-
   distanceBetweenEntities: function(entity1: Entity, entity2: Entity) {
     if (entity1.x == undefined || entity1.y == undefined || entity2.x == undefined || entity2.y == undefined) {
       throw new Error(`Error in distanceBetweenEntities: entity ${entity1.name} or ${entity2.name} x or y is undefined`);
@@ -110,6 +100,7 @@ let dungeon = {
     }
     entity.moving = true;
 
+    console.log("moveEntityTo", entity.name);
     context.scene.tweens.add({
       targets: entity.sprite,
       onComplete: () => {
