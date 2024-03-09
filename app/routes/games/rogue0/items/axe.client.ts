@@ -4,7 +4,7 @@ import { Entity } from "../entity";
 export default class Axe extends Entity {
   constructor(context: GameContext, x?: number, y?: number) {
     super();
-    this.tile = 934;
+    this.tile = 7 * 49 + 39;
     this.name = "An Axe";
     this.description = "A basic axe. Causes between 2 and 7 damage.";
     this.weapon = true;

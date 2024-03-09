@@ -1,5 +1,4 @@
 import type { GameContext } from "../context.client";
-import dungeon from "../dungeon.client";
 import Axe from "../items/axe.client";
 import Shield from "../items/shield.client";
 import BasicHero from "./basicHero.client";
