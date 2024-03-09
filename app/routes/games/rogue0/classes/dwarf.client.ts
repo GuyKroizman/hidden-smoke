@@ -5,7 +5,7 @@ import BasicHero from "./basicHero.client";
 
 export default class Dwarf extends BasicHero {
   constructor(context: GameContext, x: number, y: number) {
-    super(context, x, y);
+    super(context);
 
     this.name = "Dwarf";
     this.movementPoints = 2;
@@ -18,6 +18,8 @@ export default class Dwarf extends BasicHero {
 
     this.items.push(new Shield(context));
     this.toggleItem(context, 1);
+
+    this.init(context, x, y);
   }
 
   refresh() {

@@ -40,8 +40,8 @@ export class Scene0 extends Phaser.Scene {
     dungeon.initialize(this.context);
 
     // let player = new classes.Warrior(this.context, 15, 15);
-    let player = new classes.Dwarf(this.context, 15, 15);
-    // let player = new classes.Cleric(this.context, 15, 15);
+    // let player = new classes.Dwarf(this.context, 15, 15);
+    let player = new classes.Cleric(this.context, 15, 15);
     this.context.entities.push(player);
     this.context.player = player;
 

@@ -5,7 +5,7 @@ import Sword from "../items/sword";
 export default class Warrior extends BasicHero {
 
   constructor(context : GameContext, x: number, y: number) {
-    super(context, x, y)
+    super(context)
 
     this.name = "Warrior"
     this.movementPoints = 3
@@ -13,6 +13,8 @@ export default class Warrior extends BasicHero {
 
     this.items.push(new Sword(context))
     this.toggleItem(context, 0)
+
+    this.init(context, x, y)
   }
 
   refresh() {

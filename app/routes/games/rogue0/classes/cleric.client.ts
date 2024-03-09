@@ -6,7 +6,7 @@ import dungeon from "~/routes/games/rogue0/dungeon.client";
 export default class Cleric extends BasicHero {
 
   constructor(context : GameContext, x: number, y: number) {
-    super(context, x, y)
+    super(context)
 
     this.name = "Cleric"
     this.movementPoints = 3
@@ -16,6 +16,8 @@ export default class Cleric extends BasicHero {
 
     this.items.push(new Hammer(context))
     this.toggleItem(context, 0)
+
+    this.init(context, x, y)
   }
 
   refresh() {

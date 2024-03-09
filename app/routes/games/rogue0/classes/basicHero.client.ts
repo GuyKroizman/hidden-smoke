@@ -22,11 +22,8 @@ export default class BasicHero extends Entity {
   UIScene?: Phaser.Scene;
   UIItems?: Phaser.GameObjects.Rectangle[] = [];
 
-  constructor(context: GameContext, x: number, y: number) {
+  constructor(context: GameContext) {
     super();
-    this.init(context, x, y);
-    this.x = x;
-    this.y = y;
 
     if (context.scene?.input?.keyboard == undefined) {
       throw new Error("Error in PlayerCharacter context is undefined");
