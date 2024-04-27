@@ -19,6 +19,7 @@ export abstract class Entity {
   weapon: boolean = false;
   attackTile: number = 11 * 49 + 11;
   active: boolean = false;
+  tint: number| undefined = undefined;
 
   init(context: GameContext, x?: number, y?: number) {
 
@@ -31,6 +32,10 @@ export abstract class Entity {
       const y = context.map!.tileToWorldY(this.y);
       this.sprite = context.scene!.add.sprite(x || 0, y || 0, "tiles", this.tile);
       this.sprite.setOrigin(0);
+      if(this.tint) {
+        this.sprite.tint = this.tint;
+        this.sprite.tintFill = true;
+      }
     } else {
       this.sprite = undefined;
     }

@@ -137,7 +137,7 @@ export default class BasicHero extends Entity {
       const rangedAttack = currentWeapon.range() > 0 ? currentWeapon.attackTile || currentWeapon.tile : false;
       const distance = dungeon.distanceBetweenEntities(this, entity);
       if (rangedAttack && distance <= currentWeapon.range()) {
-        dungeon.attackEntity(context, this, entity, rangedAttack);
+        dungeon.attackEntity(context, this, entity, rangedAttack, currentWeapon.tint);
         this.actionPoints -= 1;
       }
     }
@@ -204,7 +204,7 @@ export default class BasicHero extends Entity {
             return;
           }
           const rangedAttack = currentWeapon.range() > 0 ? currentWeapon.attackTile || currentWeapon.tile : 0;
-          dungeon.attackEntity(this.context, this, entity, rangedAttack);
+          dungeon.attackEntity(this.context, this, entity, rangedAttack, currentWeapon.tint);
           this.actionPoints -= 1;
           this.movementPoints += 1;
         }
@@ -314,6 +314,10 @@ export default class BasicHero extends Entity {
         let x = this.UIItems![i].x + 10;
         let y = this.UIItems![i].y + 10;
         item.UISprite = this.UIScene?.add.sprite(x, y, "tiles", item.tile);
+        if(item.UISprite && item.tint) {
+          item.UISprite.tint = item.tint;
+          item.UISprite.tintFill = true;
+        }
       }
       if (!item.active) {
         item.UISprite?.setAlpha(0.5);

@@ -61,7 +61,8 @@ export default class Quloptsh extends Entity {
       if (this.actionPoints > 0) {
         if (dungeon.distanceBetweenEntities(this, this.context.player) <= 2) {
           const NOT_RANGED_ATTACK = 0;
-          dungeon.attackEntity(this.context, this, this.context.player, NOT_RANGED_ATTACK);
+          const WEAPON_TINT = undefined;
+          dungeon.attackEntity(this.context, this, this.context.player, NOT_RANGED_ATTACK, WEAPON_TINT);
         }
         this.actionPoints -= 1;
       }

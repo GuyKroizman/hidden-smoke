@@ -117,7 +117,8 @@ let dungeon = {
     context: GameContext,
     attacker: Entity,
     victim: Entity,
-    rangedAttack: number
+    rangedAttack: number,
+    tint: number | undefined
   ) {
     if (!context.scene || !context.map) {
       throw new Error("context scene or map are missing");
@@ -156,6 +157,10 @@ let dungeon = {
       const x = context.map.tileToWorldX(attacker.x!);
       const y = context.map.tileToWorldX(attacker.y!);
       const sprite = context.scene.add.sprite(x!, y!, "tiles"/*, rangedAttack*/).setOrigin(0);
+      if (tint) {
+        sprite.tint = tint;
+        sprite.tintFill = true;
+      }
 
       context.scene.tweens.add({
         targets: sprite,
