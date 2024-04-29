@@ -12,7 +12,7 @@ export default class Wizard extends BasicHero {
     this.movementPoints = 3;
     this.actionPoints = 1;
     this.healthPoints = 20;
-    this.tile = 88;
+    this.tile = 49 + 24;
 
     this.items.push(new scrollofFireball(context));
     this.items.push(new scrollofLightning(context));
