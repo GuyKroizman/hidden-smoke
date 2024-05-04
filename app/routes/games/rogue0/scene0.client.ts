@@ -73,10 +73,6 @@ export class Scene0 extends Phaser.Scene {
 
   update() {
     const entities = this.context.entities;
-
-    if (turnManager.isOver(entities)) {
-      turnManager.refresh(entities);
-    }
-    turnManager.turn(entities);
+    turnManager.update(entities);
   }
 }

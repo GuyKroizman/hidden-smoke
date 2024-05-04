@@ -3,12 +3,19 @@ import type { Entity } from "~/routes/games/rogue0/entity";
 const turnManager = {
   entityIndex: 0,
 
-  refresh: (entities: Entity[]) => entities.forEach((e) => {
+  update: (entities: Entity[]) => {
+    if (turnManager._isOver(entities)) {
+      turnManager._refresh(entities);
+    }
+    turnManager._turn(entities);
+  },
+
+  _refresh: (entities: Entity[]) => entities.forEach((e) => {
     e.refresh();
     turnManager.entityIndex = 0;
   }),
 
-  turn: (entities: Entity[]) => {
+  _turn: (entities: Entity[]) => {
     if (entities.length === 0 || !entities) {
       return;
     }
@@ -22,7 +29,7 @@ const turnManager = {
     }
   },
 
-  isOver: (entities: Entity[]) => entities.every((e) => e.isOver())
+  _isOver: (entities: Entity[]) => entities.every((e) => e.isOver())
 };
 
 export default turnManager;
