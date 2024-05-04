@@ -30,7 +30,7 @@ export default class LongSword extends Entity {
   refresh() {
   }
 
-  over() {
+  isOver() {
     return true;
   }
 

@@ -30,13 +30,13 @@ export default class BasicHero extends Entity {
     }
 
     context.scene.input.keyboard.on("keydown", (event: KeyboardEvent) => {
-      if (!this.over()) {
+      if (!this.isOver()) {
         this.processInput(event);
       }
     });
 
     context.scene.input.on("pointerup", (event: Phaser.Input.Pointer) => {
-      if (!this.over()) {
+      if (!this.isOver()) {
         this.processTouchInput(context, event);
       }
     });
@@ -229,7 +229,7 @@ export default class BasicHero extends Entity {
     }
   }
 
-  over() {
+  isOver() {
     let isOver = this.movementPoints == 0 && !this.moving;
 
     if (this.UIHeader) {

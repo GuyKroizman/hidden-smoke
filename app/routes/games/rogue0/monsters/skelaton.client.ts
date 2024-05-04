@@ -81,7 +81,7 @@ export default class Skeleton extends Entity {
     }
   }
 
-  over() {
+  isOver() {
     const isOver =
       this.movementPoints == 0 && this.actionPoints == 0 && !this.moving;
 

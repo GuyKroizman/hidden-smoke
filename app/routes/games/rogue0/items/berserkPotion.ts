@@ -39,7 +39,7 @@ export default class BerserkPotion extends Entity {
   refresh() {
   }
 
-  over() {
+  isOver() {
     if (!this.context.player || this.itermNumber == undefined) {
       return true;
     }

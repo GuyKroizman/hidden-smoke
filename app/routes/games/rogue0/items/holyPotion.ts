@@ -36,7 +36,7 @@ export default class HolyPotion extends Entity {
   refresh() {
   }
 
-  over() {
+  isOver() {
     return true;
   }
 

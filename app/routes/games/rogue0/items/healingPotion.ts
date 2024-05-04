@@ -35,7 +35,7 @@ export default class HealingPotion extends Entity {
   refresh() {
   }
 
-  over() {
+  isOver() {
     return true;
   }
 

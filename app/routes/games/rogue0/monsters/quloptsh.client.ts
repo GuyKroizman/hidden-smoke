@@ -69,7 +69,7 @@ export default class Quloptsh extends Entity {
     }
   }
 
-  over() {
+  isOver() {
     const isOver =
       this.movementPoints == 0 && this.actionPoints == 0 && !this.moving;
 

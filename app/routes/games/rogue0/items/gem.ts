@@ -26,7 +26,7 @@ export default class Gem extends Entity {
   refresh() {
   }
 
-  over() {
+  isOver() {
     return true;
   }
 

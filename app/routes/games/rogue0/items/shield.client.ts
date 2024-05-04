@@ -25,7 +25,7 @@ export default class Sword extends Entity {
   refresh() {
   }
 
-  over() {
+  isOver() {
     return true;
   }
 

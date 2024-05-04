@@ -40,7 +40,7 @@ export default class CursedGem extends Entity {
     this.actionPoints = 1;
   }
 
-  over() {
+  isOver() {
     return this.actionPoints === 0;
   }
 

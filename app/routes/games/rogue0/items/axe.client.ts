@@ -25,7 +25,7 @@ export default class Axe extends Entity {
   refresh() {
   }
 
-  over() {
+  isOver() {
     return true;
   }
 

@@ -28,7 +28,7 @@ export default class ScrollOfLightning extends Entity {
 
   refresh() {
   }
-  over(): boolean {
+  isOver(): boolean {
     return false;
   }
 

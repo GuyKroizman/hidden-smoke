@@ -25,7 +25,7 @@ export default class Bow extends Entity {
   refresh() {
   }
 
-  over() {
+  isOver() {
     return true;
   }
 

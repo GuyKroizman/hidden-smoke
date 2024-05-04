@@ -36,7 +36,7 @@ export default class HealthPotion extends Entity {
   refresh() {
   }
 
-  over() {
+  isOver() {
     return true;
   }
 

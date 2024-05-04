@@ -33,7 +33,7 @@ export default class Shoe extends Entity {
   refresh() {
   }
 
-  over() {
+  isOver() {
    return true;
   }
 

@@ -45,9 +45,9 @@ export abstract class Entity {
 
   abstract refresh(): void;
 
-  abstract turn(context: GameContext): void;
+  abstract turn(): void;
 
-  abstract over(): boolean;
+  abstract isOver(): boolean;
 
   abstract attack(): number;
 

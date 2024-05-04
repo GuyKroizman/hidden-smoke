@@ -1,29 +1,28 @@
-import type { GameContext } from "~/routes/games/rogue0/context.client";
+import type { Entity } from "~/routes/games/rogue0/entity";
 
 const turnManager = {
-  entities: [],
-  currentIndex: 0,
+  entityIndex: 0,
 
-  refresh: (context: GameContext) => context.entities.forEach((e) => {
+  refresh: (entities: Entity[]) => entities.forEach((e) => {
     e.refresh();
-    turnManager.currentIndex = 0
+    turnManager.entityIndex = 0;
   }),
 
-  turn: (context: GameContext) => {
-    if (context.entities.length === 0 || !context.entities) {
+  turn: (entities: Entity[]) => {
+    if (entities.length === 0 || !entities) {
       return;
     }
 
-    let e = context.entities[turnManager.currentIndex];
+    let e = entities[turnManager.entityIndex];
 
-    if (!e.over()) {
-      e.turn(context);
+    if (!e.isOver()) {
+      e.turn();
     } else {
-      turnManager.currentIndex++;
+      turnManager.entityIndex++;
     }
   },
 
-  over: (context: GameContext) => context.entities.every((e) => e.over()),
+  isOver: (entities: Entity[]) => entities.every((e) => e.isOver())
 };
 
 export default turnManager;

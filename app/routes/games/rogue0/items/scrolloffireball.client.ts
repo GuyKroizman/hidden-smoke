@@ -27,7 +27,7 @@ export default class ScrollOfFireball extends Entity {
   refresh() {
   }
 
-  over() {
+  isOver() {
     return true;
   }
 
