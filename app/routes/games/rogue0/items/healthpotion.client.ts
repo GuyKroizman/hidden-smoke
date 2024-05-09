@@ -6,9 +6,9 @@ import dungeon from "~/routes/games/rogue0/dungeon.client";
 export default class HealthPotion extends Entity {
   constructor(context: GameContext, x?: number, y?: number) {
     super();
-    this.tile = 761;
+    this.tile = 13 * 49 + 33;
     this.name = "Health Potion";
-    this.description = "A potion that removes cursed items when equipped."
+    this.description = "A potion that restores health."
     this.weapon = false;
 
     this.init(context, x, y);

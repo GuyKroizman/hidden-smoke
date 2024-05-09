@@ -5,12 +5,12 @@ export default class ScrollOfLightning extends Entity {
   constructor(context: GameContext, x?: number, y?: number) {
     super();
 
-    this.tile = 881;
+    this.tile = 15 * 49 + 34;
     this.name = "Scroll of Lightning";
     this.description = "A scroll of Lightning. Causes between 1 and 2 damage. Range is seven tiles."
     this.weapon = true;
 
-    this.tint = 0x0022ff;
+    this.tint = 0xffff00;
     this.attackTile = 413;
 
     this.init(context, x, y);

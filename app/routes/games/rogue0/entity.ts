@@ -34,7 +34,6 @@ export abstract class Entity {
       this.sprite.setOrigin(0);
       if(this.tint) {
         this.sprite.tint = this.tint;
-        this.sprite.tintFill = true;
       }
     } else {
       this.sprite = undefined;

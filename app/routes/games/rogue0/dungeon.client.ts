@@ -159,7 +159,6 @@ let dungeon = {
       const sprite = context.scene.add.sprite(x!, y!, "tiles"/*, rangedAttack*/).setOrigin(0);
       if (tint) {
         sprite.tint = tint;
-        sprite.tintFill = true;
       }
 
       context.scene.tweens.add({

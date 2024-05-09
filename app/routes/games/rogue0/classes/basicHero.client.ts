@@ -316,7 +316,6 @@ export default class BasicHero extends Entity {
         item.UISprite = this.UIScene?.add.sprite(x, y, "tiles", item.tile);
         if(item.UISprite && item.tint) {
           item.UISprite.tint = item.tint;
-          item.UISprite.tintFill = true;
         }
       }
       if (!item.active) {
