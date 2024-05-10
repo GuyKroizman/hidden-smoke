@@ -11,13 +11,13 @@ export default class BerserkPotion extends Entity {
   type: EntityType = "item";
   tile = 13 * 49 + 33;
   remainingTurns: number = 10;
-  itermNumber: number | undefined;
+  itemNumber: number | undefined;
 
   constructor(context: GameContext, x?: number, y?: number) {
     super();
     this.init(context, x, y);
 
-    this.itermNumber = undefined;
+    this.itemNumber = undefined;
   }
 
   equip(itemNumber: number) {
@@ -26,7 +26,7 @@ export default class BerserkPotion extends Entity {
     }
     dungeon.log(this.context, `You drink the potion and feel as strong as a bear!`);
 
-    this.itermNumber = itemNumber;
+    this.itemNumber = itemNumber;
   }
 
   damage() {
@@ -40,12 +40,12 @@ export default class BerserkPotion extends Entity {
   }
 
   isOver() {
-    if (!this.context.player || this.itermNumber == undefined) {
+    if (!this.context.player || this.itemNumber == undefined) {
       return true;
     }
 
     if (this.remainingTurns <= 0) {
-      this.context.player.removeItem(this.itermNumber);
+      this.context.player.removeItem(this.itemNumber);
       removeEntity(this.context, this);
     }
     this.remainingTurns--;

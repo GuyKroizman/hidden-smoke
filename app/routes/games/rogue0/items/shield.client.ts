@@ -1,7 +1,7 @@
 import { Entity } from "../entity";
 import type { GameContext } from "../context.client";
 
-export default class Sword extends Entity {
+export default class Shield extends Entity {
   constructor(context: GameContext, x?: number, y?: number) {
     super();
     this.tile = 776;
