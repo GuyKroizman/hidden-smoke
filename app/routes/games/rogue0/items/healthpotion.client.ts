@@ -20,9 +20,10 @@ export default class HealthPotion extends Entity {
     }
     const points = Phaser.Math.Between(3, 5)
 
-    dungeon.log(context, `A warm feeling is felt when drinking the potion as it restores ${points} health points.`)
+    dungeon.log(context, `A warm feeling when drinking the potion as it restores ${points} health points.`)
 
     this.context.player.healthPoints  += points;
+    this.context.player.removeItem(itemNumber);
     removeEntity(this.context, this);
   }
 
