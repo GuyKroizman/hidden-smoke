@@ -156,7 +156,7 @@ let dungeon = {
     } else {
       const x = context.map.tileToWorldX(attacker.x!);
       const y = context.map.tileToWorldX(attacker.y!);
-      const sprite = context.scene.add.sprite(x!, y!, "tiles"/*, rangedAttack*/).setOrigin(0);
+      const sprite = context.scene.add.sprite(x!, y!, "tiles", rangedAttack).setOrigin(0);
       if (tint) {
         sprite.tint = tint;
       }
