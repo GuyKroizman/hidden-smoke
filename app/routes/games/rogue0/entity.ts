@@ -19,7 +19,7 @@ export abstract class Entity {
   weapon: boolean = false;
   attackTile: number = 11 * 49 + 11;
   active: boolean = false;
-  tint: number| undefined = undefined;
+  tint: number | undefined = undefined;
 
   init(context: GameContext, x?: number, y?: number) {
 
@@ -27,14 +27,10 @@ export abstract class Entity {
     this.y = y;
     this.context = context;
 
+    // x, y are not provided if the entity is an item carried (equipped) by the player
+    // (not on the map)
     if (this.x && this.y) {
-      const x = context.map!.tileToWorldX(this.x);
-      const y = context.map!.tileToWorldY(this.y);
-      this.sprite = context.scene!.add.sprite(x || 0, y || 0, "tiles", this.tile);
-      this.sprite.setOrigin(0);
-      if(this.tint) {
-        this.sprite.tint = this.tint;
-      }
+      this.sprite = createSprite(context, this.x, this.y, this.tile, this.tint);
     } else {
       this.sprite = undefined;
     }
@@ -68,4 +64,15 @@ export function removeEntity(context: GameContext, entity: Entity) {
   entity.sprite?.destroy();
 
   entity.onDestroy();
+}
+
+function createSprite(context: GameContext, x: number, y: number, tile: number, tint?: number): Phaser.GameObjects.Sprite {
+  const xx = context.map!.tileToWorldX(x);
+  const yy = context.map!.tileToWorldY(y);
+  const sprite = context.scene!.add.sprite(xx || 0 , yy || 0, "tiles", tile);
+  sprite.setOrigin(0);
+  if (tint) {
+    sprite.tint = tint;
+  }
+  return sprite;
 }
