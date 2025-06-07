@@ -3,7 +3,6 @@ import styles from "./styles/app.css"
 import type { MetaFunction } from "@remix-run/node";
 import {
   Links,
-  LiveReload,
   Meta,
   Outlet,
   Scripts,
@@ -17,8 +16,8 @@ export function links() {
 }
 
 export const meta: MetaFunction = () => ({
-  charset: "utf-8",
   title: "Guy Kroizman",
+  charset: "utf-8",
   viewport: "width=device-width,initial-scale=1",
 });
 
@@ -34,7 +33,6 @@ export default function App() {
         <Outlet />
         <ScrollRestoration />
         <Scripts />
-        <LiveReload />
       </body>
     </html>
   );
