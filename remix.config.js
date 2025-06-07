@@ -1,9 +1,6 @@
 /** @type {import('@remix-run/dev').AppConfig} */
 module.exports = {
   ignoredRouteFiles: ["**/.*"],
-  dev: {
-    port: 3000,
-  },
   future: {
     v3_fetcherPersist: true,
     v3_lazyRouteDiscovery: true,
