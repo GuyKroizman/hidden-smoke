@@ -1,7 +1,5 @@
 import { PassThrough } from "stream";
 import type { EntryContext } from "@remix-run/node";
-import pkg from "@remix-run/node";
-const { Response } = pkg;
 import { RemixServer } from "@remix-run/react";
 import { isbot } from "isbot";
 import { renderToPipeableStream } from "react-dom/server";
@@ -36,20 +34,21 @@ function handleBotRequest(
   remixContext: EntryContext
 ) {
   return new Promise((resolve, reject) => {
-    let didError = false;
-
+    let shellRendered = false;
     const { pipe, abort } = renderToPipeableStream(
       <RemixServer context={remixContext} url={request.url} />,
       {
         onAllReady() {
+          shellRendered = true;
           const body = new PassThrough();
+          const stream = body as any;
 
           responseHeaders.set("Content-Type", "text/html");
 
           resolve(
-            new Response(body, {
+            new Response(stream, {
               headers: responseHeaders,
-              status: didError ? 500 : responseStatusCode,
+              status: responseStatusCode,
             })
           );
 
@@ -59,9 +58,10 @@ function handleBotRequest(
           reject(error);
         },
         onError(error: unknown) {
-          didError = true;
-
           console.error(error);
+          if (!shellRendered) {
+            responseStatusCode = 500;
+          }
         },
       }
     );
@@ -77,20 +77,21 @@ function handleBrowserRequest(
   remixContext: EntryContext
 ) {
   return new Promise((resolve, reject) => {
-    let didError = false;
-
+    let shellRendered = false;
     const { pipe, abort } = renderToPipeableStream(
       <RemixServer context={remixContext} url={request.url} />,
       {
         onShellReady() {
+          shellRendered = true;
           const body = new PassThrough();
+          const stream = body as any;
 
           responseHeaders.set("Content-Type", "text/html");
 
           resolve(
-            new Response(body, {
+            new Response(stream, {
               headers: responseHeaders,
-              status: didError ? 500 : responseStatusCode,
+              status: responseStatusCode,
             })
           );
 
@@ -100,9 +101,10 @@ function handleBrowserRequest(
           reject(err);
         },
         onError(error: unknown) {
-          didError = true;
-
           console.error(error);
+          if (!shellRendered) {
+            responseStatusCode = 500;
+          }
         },
       }
     );
