@@ -34,6 +34,9 @@ export default function Index() {
         <li>
           <Link to="/rogue0" className="text-xl text-blue-600 underline">Rogue0</Link>
         </li>
+        <li>
+          <Link to="/hoot" className="text-xl text-blue-600 underline">Hoot</Link>
+        </li>
       </ul>
     </div>
   );
