@@ -180,10 +180,6 @@ export class HootGameScene extends Phaser.Scene {
   }
 
   updateRope() {
-    // Debug: Log that updateRope is being called
-    if (this.frameCount % 30 === 0) {
-      console.log(`updateRope called, segments: ${this.context.ropeSegments.length}`);
-    }
 
     if (this.context.ropeSegments.length > 0) {
       // Update segment positions based on velocities
