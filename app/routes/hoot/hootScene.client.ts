@@ -14,7 +14,6 @@ export class HootGameScene extends Phaser.Scene {
 
   constructor(context: HootGameContext) {
     super("hoot-game-scene");
-    console.log("HootGameScene constructor called with context:", context);
     this.context = context;
   }
 
@@ -23,7 +22,6 @@ export class HootGameScene extends Phaser.Scene {
   }
 
   create() {
-    console.log("Create method called, context:", this.context);
     if (!this.context) {
       console.error("Context is undefined!");
       return;
@@ -35,13 +33,13 @@ export class HootGameScene extends Phaser.Scene {
   }
 
   update() {
-    if (this.frameCount > 2000) {
-      return;
-    }
+    // if (this.frameCount > 500) {
+    //   return;
+    // }
     // Debug: Log that update is running
-    if (this.frameCount % 30 === 0) {
-      console.log(`Update running, time: ${this.time.now.toFixed(0)}, segments: ${this.context.ropeSegments.length}`);
-    }
+    // if (this.frameCount % 30 === 0) {
+    //   console.log(`Update running, time: ${this.time.now.toFixed(0)}, segments: ${this.context.ropeSegments.length}`);
+    // }
 
     this.frameCount++;
 
@@ -51,7 +49,6 @@ export class HootGameScene extends Phaser.Scene {
   }
 
   createRope() {
-    console.log("Creating rope...");
 
     const ropeLength = 10; // Number of segments
     const segmentSize = 8; // Size of each segment (circle radius)
@@ -103,7 +100,6 @@ export class HootGameScene extends Phaser.Scene {
     }
 
     console.log(`Created ${this.context.ropeSegments.length} rope segments`);
-    console.log("=== INITIAL ROPE STATE ===");
     this.context.ropeSegments.forEach((segment: any, index: number) => {
       console.log(`Initial Segment ${index}: pos(${segment.x.toFixed(1)}, ${segment.y.toFixed(1)})`);
     });
@@ -112,14 +108,14 @@ export class HootGameScene extends Phaser.Scene {
     this.createRopeLines();
 
     // Create a visual weight at the end of the rope
-    const lastSegment = this.context.ropeSegments[this.context.ropeSegments.length - 1];
-    this.weight = this.add.circle(
-      lastSegment.x,
-      lastSegment.y + 15,
-      8,
-      0x8B4513 // Brown color for weight
-    );
-    (this.weight as any).setDepth(999);
+    // const lastSegment = this.context.ropeSegments[this.context.ropeSegments.length - 1];
+    // this.weight = this.add.circle(
+    //   lastSegment.x,
+    //   lastSegment.y + 15,
+    //   8,
+    //   0x8B4513 // Brown color for weight
+    // );
+    // (this.weight as any).setDepth(999);
   }
 
   createRopeLines() {
@@ -189,8 +185,24 @@ export class HootGameScene extends Phaser.Scene {
       console.log(`updateRope called, segments: ${this.context.ropeSegments.length}`);
     }
 
-    // Static rope - no movement at all, just constraints
     if (this.context.ropeSegments.length > 0) {
+      // Update segment positions based on velocities
+      this.context.ropeSegments.forEach((segment: any, index: number) => {
+        if (!segment.isAnchor) {
+          // Apply stronger damping to velocities
+          segment.velocityX *= 0.85;
+          segment.velocityY *= 0.85;
+
+          // Update position based on velocity
+          segment.x += segment.velocityX;
+          segment.y += segment.velocityY;
+
+          // Keep segments within bounds
+          segment.x = Math.max(20, Math.min(780, segment.x));
+          segment.y = Math.max(20, Math.min(580, segment.y));
+        }
+      });
+
       // Apply constraints multiple times to keep rope together
       for (let i = 0; i < 10; i++) {
         this.updateConstraints();
@@ -256,23 +268,27 @@ export class HootGameScene extends Phaser.Scene {
             ball.x = segment.x + Math.cos(angle) * minDistance;
             ball.y = segment.y + Math.sin(angle) * minDistance;
 
-            // Transfer momentum from ball to rope segment
+            // Transfer momentum from ball to rope segment (much gentler)
             const ballSpeed = Math.sqrt(ball.velocityX * ball.velocityX + ball.velocityY * ball.velocityY);
-            const transferFactor = 0.3; // How much energy to transfer
+            const transferFactor = 0.05; // Much smaller transfer factor
 
-            // Add velocity to rope segment
-            segment.velocityX += ball.velocityX * transferFactor;
-            segment.velocityY += ball.velocityY * transferFactor;
+            // Add velocity to rope segment (capped to prevent extreme responses)
+            const maxSegmentVelocity = 3; // Maximum velocity for segments
+            const newSegmentVelX = ball.velocityX * transferFactor;
+            const newSegmentVelY = ball.velocityY * transferFactor;
 
-            // Reduce ball velocity
-            ball.velocityX *= (1 - transferFactor);
-            ball.velocityY *= (1 - transferFactor);
+            segment.velocityX += Math.max(-maxSegmentVelocity, Math.min(maxSegmentVelocity, newSegmentVelX));
+            segment.velocityY += Math.max(-maxSegmentVelocity, Math.min(maxSegmentVelocity, newSegmentVelY));
 
-            // Add some randomness to make it more interesting
-            segment.velocityX += (Math.random() - 0.5) * 2;
-            segment.velocityY += (Math.random() - 0.5) * 2;
+            // Reduce ball velocity (gentler reduction)
+            ball.velocityX *= 0.9; // Gentler reduction (changed from (1 - transferFactor))
+            ball.velocityY *= 0.9; // Gentler reduction (changed from (1 - transferFactor))
 
-            console.log(`Ball hit rope segment! Ball speed: ${ballSpeed.toFixed(2)}`);
+            // Add very small randomness (much smaller)
+            segment.velocityX += (Math.random() - 0.5) * 0.2; // Much smaller randomness (changed from * 2)
+            segment.velocityY += (Math.random() - 0.5) * 0.2; // Much smaller randomness (changed from * 2)
+
+            console.log(`Ball hit rope segment! Ball speed: ${ballSpeed.toFixed(2)}, transfer: ${transferFactor}`);
           }
         }
       });
@@ -310,9 +326,9 @@ export class HootGameScene extends Phaser.Scene {
         segment2.y += moveY;
 
         // Debug: Log constraint updates less frequently
-        if (this.frameCount % 60 === 0) {
-          console.log(`Constraint ${index}: distance=${distance.toFixed(1)}, target=${targetDistance}, difference=${difference.toFixed(3)}, move=(${moveX.toFixed(2)}, ${moveY.toFixed(2)})`);
-        }
+        // if (this.frameCount % 60 === 0) {
+        //   console.log(`Constraint ${index}: distance=${distance.toFixed(1)}, target=${targetDistance}, difference=${difference.toFixed(3)}, move=(${moveX.toFixed(2)}, ${moveY.toFixed(2)})`);
+        // }
       }
     });
   }
