@@ -2,12 +2,18 @@ import { Link } from "@remix-run/react";
 import { phaser } from "~/routes/games/phaser.client";
 import { useEffect, useRef } from "react";
 import type { Game } from "phaser";
+import { HootGameScene } from "./hoot/hootScene.client";
+import { hootContext } from "./hoot/context.client";
 
 export default function Hoot() {
   const phaserRef = useRef<Game>()
 
   useEffect(() => {
     if(!phaserRef.current) {
+      console.log("Creating Hoot game...");
+      console.log("HootGameScene imported:", HootGameScene);
+      console.log("hootContext imported:", hootContext);
+      
       const config: Phaser.Types.Core.GameConfig = {
         type: Phaser.AUTO,
         parent: "phaser",
@@ -15,23 +21,18 @@ export default function Hoot() {
         height: 600,
         backgroundColor: "#2d2d2d",
         pixelArt: true,
-        scene: {
-          preload() {
-            // Load assets here
-          },
-          create() {
-            // Create game objects here
-            this.add.text(400, 300, "Hoot Game", {
-              fontSize: "32px",
-              color: "#ffffff"
-            }).setOrigin(0.5);
-          },
-          update() {
-            // Game loop here
+        physics: {
+          default: "arcade",
+          arcade: {
+            gravity: { x: 0, y: 0 }, // No gravity for top-down physics
+            debug: false
           }
-        }
+        },
+        scene: [new HootGameScene(hootContext)]
       };
 
+      console.log("Game config created with scene:", config.scene);
+      
       const game = new phaser.Game(config);
       phaserRef.current = game;
     }
@@ -44,7 +45,7 @@ export default function Hoot() {
         Back
       </Link>
       <div id="phaser"></div>
-      <div>Hoot game - coming soon!</div>
+      <div>Hoot game - Rope & Ball Physics Demo!</div>
     </div>
   );
 } 
