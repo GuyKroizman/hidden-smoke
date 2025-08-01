@@ -24,21 +24,6 @@ export class HootScene extends Phaser.Scene {
       color: "#ffffff"
     }).setOrigin(0.5);
 
-    this.add.text(400, 80, "Click to attach rope to mouse", {
-      fontSize: "16px",
-      color: "#cccccc"
-    }).setOrigin(0.5);
-
-    // Add a simple test circle to see if rendering works
-    this.add.circle(400, 200, 20, 0xff0000);
-
-    // Create mouse indicator
-    this.mouseIndicator = this.add.graphics();
-    this.mouseIndicator.setDepth(1000); // Make sure it's on top
-
-    // Create rope
-    this.createRope();
-
     // Add mouse interaction with better debugging
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       console.log("Mouse clicked at:", pointer.x, pointer.y);
@@ -64,7 +49,7 @@ export class HootScene extends Phaser.Scene {
 
   createRope() {
     console.log("Creating rope...");
-    
+
     // Rope properties
     const ropeLength = 10; // Number of segments
     const segmentSize = 8; // Size of each segment
@@ -75,25 +60,25 @@ export class HootScene extends Phaser.Scene {
     for (let i = 0; i < ropeLength; i++) {
       // Create a circle for each segment
       const segment = this.add.circle(
-        startX, 
-        startY + (i * segmentSize), 
-        segmentSize / 2, 
+        startX,
+        startY + (i * segmentSize),
+        segmentSize / 2,
         0x00ff00 // Green color
       );
-      
+
       // Add physics body to the segment
       this.physics.add.existing(segment);
-      
+
       // Make the first segment static (anchor point)
       if (i === 0) {
         (segment.body as Phaser.Physics.Arcade.Body).setImmovable(true);
       }
-      
+
       // Store segment in context
       this.context.ropeSegments.push(segment);
       console.log(`Created segment ${i} at (${startX}, ${startY + (i * segmentSize)})`);
     }
-    
+
     // Create connections between segments using distance-based constraints
     for (let i = 0; i < this.context.ropeSegments.length - 1; i++) {
       const current = this.context.ropeSegments[i];
@@ -102,7 +87,7 @@ export class HootScene extends Phaser.Scene {
       // Add collision between segments
       this.physics.add.collider(current, next);
     }
-    
+
     console.log(`Created ${this.context.ropeSegments.length} rope segments`);
   }
 
@@ -130,13 +115,13 @@ export class HootScene extends Phaser.Scene {
   updateMouseIndicator() {
     if (this.mouseIndicator) {
       this.mouseIndicator.clear();
-      
+
       if (this.context.isMouseAttached) {
         // Draw a red circle at mouse position when attached
         this.mouseIndicator.lineStyle(2, 0xff0000);
         this.mouseIndicator.strokeCircle(
-          this.context.mousePosition.x, 
-          this.context.mousePosition.y, 
+          this.context.mousePosition.x,
+          this.context.mousePosition.y,
           15
         );
       }
