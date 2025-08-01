@@ -3,14 +3,30 @@ import type { HootGameContext } from "./context.client";
 
 export class HootGameScene extends Phaser.Scene {
   context: HootGameContext;
-  private weight?: Phaser.GameObjects.GameObject;
-  private frameCount: number = 0;
-  private ropeLines: Phaser.GameObjects.Graphics[] = [];
-  private segmentConnections: Array<{
-    segment1: Phaser.GameObjects.Shape;
-    segment2: Phaser.GameObjects.Shape;
-    distance: number;
-  }> = [];
+  private player!: Phaser.GameObjects.Rectangle;
+  private playerHealth: number = 100;
+  private bullets: Phaser.GameObjects.Shape[] = [];
+  private enemies: Phaser.GameObjects.Rectangle[] = [];
+  private enemyHealths: Map<Phaser.GameObjects.Rectangle, number> = new Map();
+  private lastShootTime: number = 0;
+  private shootCooldown: number = 500; // 500ms = 0.5 seconds
+  private gameOver: boolean = false;
+  private healthText!: Phaser.GameObjects.Text;
+  private gameOverText!: Phaser.GameObjects.Text;
+  private stageText!: Phaser.GameObjects.Text;
+  private congratulationsText!: Phaser.GameObjects.Text;
+  private playerDirection: number = 0; // 0 = right, 1 = down, 2 = left, 3 = up
+  private keys: { [key: string]: boolean } = {}; // Track key states
+  private enemySpeed: number = 2; // Speed at which enemies advance toward player (doubled from 1)
+  private explosionRadius: number = 50; // Proximity for explosion
+  private explosionDamage: number = 50; // Damage from explosion
+  private currentStage: number = 1;
+  private stageConfigs = [
+    { enemies: 1, balls: 1 }, // Stage 1
+    { enemies: 4, balls: 2 }, // Stage 2
+    { enemies: 30, balls: 4 }, // Stage 3 (2 balls size 60, 2 balls size 10)
+  ];
+  private isTransitioning: boolean = false; // Flag to prevent premature stage completion
 
   constructor(context: HootGameContext) {
     super("hoot-game-scene");
@@ -28,143 +44,60 @@ export class HootGameScene extends Phaser.Scene {
     }
     this.context.scene = this;
 
-    this.createRope();
+    // Create border
+    this.createBorder();
+
+    // Create player
+    this.createPlayer();
+
+    // Create balls
     this.createBalls();
+
+    // Create enemies
+    this.createEnemies();
+
+    // Create UI
+    this.createUI();
+
+    // Setup input
+    this.setupInput();
   }
 
-  update() {
-    // if (this.frameCount > 500) {
-    //   return;
-    // }
-    // Debug: Log that update is running
-    // if (this.frameCount % 30 === 0) {
-    //   console.log(`Update running, time: ${this.time.now.toFixed(0)}, segments: ${this.context.ropeSegments.length}`);
-    // }
-
-    this.frameCount++;
-
-    this.updateRope();
-    this.updateBalls();
-    this.checkBallRopeCollisions();
+  createBorder() {
+    const graphics = this.add.graphics();
+    graphics.lineStyle(4, 0xffffff);
+    graphics.strokeRect(10, 10, this.cameras.main.width - 20, this.cameras.main.height - 20);
   }
 
-  createRope() {
-
-    const ropeLength = 10; // Number of segments
-    const segmentSize = 8; // Size of each segment (circle radius)
-    const lineLength = 20; // Distance between segments
-    const startX = 400; // Starting X position
-    const startY = 100; // Starting Y position
-
-    const anchor = this.add.circle(startX, startY, 6, 0xff00ff); // Anchor point
-    (anchor as Phaser.GameObjects.GameObject & { setDepth: (depth: number) => void }).setDepth(1000);
-
-    // Create rope segments with custom physics data
-    for (let i = 0; i < ropeLength; i++) {
-      const segment = this.add.circle(
-        startX,
-        startY + (i * lineLength), // Use lineLength for spacing
-        segmentSize / 2,
-        0x00ff00
-      );
-
-      // Add custom physics properties
-      (segment as any).velocityX = 0;
-      (segment as any).velocityY = 0;
-      (segment as any).mass = 1;
-      (segment as any).radius = segmentSize / 2;
-      (segment as any).isAnchor = i === 0; // First segment is anchor
-
-      this.context.ropeSegments.push(segment);
-      console.log(`Created segment ${i} at (${startX}, ${startY + (i * lineLength)}) with isAnchor: ${i === 0}`);
-    }
-
-    // Store segment connections for constraint updates
-    this.segmentConnections = [];
-    for (let i = 0; i < this.context.ropeSegments.length - 1; i++) {
-      const segment1 = this.context.ropeSegments[i];
-      const segment2 = this.context.ropeSegments[i + 1];
-
-      // Calculate actual distance between segments
-      const dx = segment2.x - segment1.x;
-      const dy = segment2.y - segment1.y;
-      const actualDistance = Math.sqrt(dx * dx + dy * dy);
-
-      console.log(`Initial distance between segments ${i} and ${i + 1}: ${actualDistance.toFixed(1)} (target: ${lineLength})`);
-
-      this.segmentConnections.push({
-        segment1: segment1,
-        segment2: segment2,
-        distance: lineLength // Use lineLength for constraint distance
-      });
-    }
-
-    console.log(`Created ${this.context.ropeSegments.length} rope segments`);
-    this.context.ropeSegments.forEach((segment: any, index: number) => {
-      console.log(`Initial Segment ${index}: pos(${segment.x.toFixed(1)}, ${segment.y.toFixed(1)})`);
-    });
-
-    // Create visual lines between segments
-    this.createRopeLines();
-
-    // Create a visual weight at the end of the rope
-    // const lastSegment = this.context.ropeSegments[this.context.ropeSegments.length - 1];
-    // this.weight = this.add.circle(
-    //   lastSegment.x,
-    //   lastSegment.y + 15,
-    //   8,
-    //   0x8B4513 // Brown color for weight
-    // );
-    // (this.weight as any).setDepth(999);
-  }
-
-  createRopeLines() {
-    // Clear any existing lines
-    this.ropeLines.forEach(line => line.destroy());
-    this.ropeLines = [];
-
-    // Create lines between each pair of segments
-    for (let i = 0; i < this.context.ropeSegments.length - 1; i++) {
-      const segment1 = this.context.ropeSegments[i];
-      const segment2 = this.context.ropeSegments[i + 1];
-
-      const line = this.add.graphics();
-      line.lineStyle(2, 0x8B4513); // Brown color, 2px width
-      line.beginPath();
-      line.moveTo(segment1.x, segment1.y);
-      line.lineTo(segment2.x, segment2.y);
-      line.strokePath();
-      line.setDepth(500); // Behind the segments
-
-      this.ropeLines.push(line);
-    }
-  }
-
-  updateRopeLines() {
-    // Update line positions to follow segments
-    for (let i = 0; i < this.ropeLines.length; i++) {
-      const line = this.ropeLines[i];
-      const segment1 = this.context.ropeSegments[i];
-      const segment2 = this.context.ropeSegments[i + 1];
-
-      line.clear();
-      line.lineStyle(2, 0x8B4513);
-      line.beginPath();
-      line.moveTo(segment1.x, segment1.y);
-      line.lineTo(segment2.x, segment2.y);
-      line.strokePath();
-    }
+  createPlayer() {
+    this.player = this.add.rectangle(this.cameras.main.width / 2, this.cameras.main.height / 2, 10, 10, 0x800080); // Purple rectangle
   }
 
   createBalls() {
-    console.log("Creating bouncing balls...");
-
-    // Create several bouncing balls
-    for (let i = 0; i < 5; i++) {
+    const currentConfig = this.stageConfigs[this.currentStage - 1];
+    const ballCount = currentConfig.balls;
+    
+    // Clear existing balls
+    this.context.balls.forEach(ball => ball.destroy());
+    this.context.balls = [];
+    
+    // Create balls based on stage configuration
+    for (let i = 0; i < ballCount; i++) {
+      let ballRadius = 36; // Default radius for stages 1 and 2
+      
+      // Stage 3 has different ball sizes
+      if (this.currentStage === 3) {
+        if (i < 2) {
+          ballRadius = 60; // First 2 balls are size 60
+        } else {
+          ballRadius = 10; // Last 2 balls are size 10
+        }
+      }
+      
       const ball = this.add.circle(
-        100 + Math.random() * 600, // Random X position
-        50 + Math.random() * 200,  // Random Y position
-        12, // Ball radius
+        100 + Math.random() * (this.cameras.main.width - 200), // Random X position
+        50 + Math.random() * (this.cameras.main.height - 100),  // Random Y position
+        ballRadius,
         0xff0000 // Red color
       );
 
@@ -172,160 +105,564 @@ export class HootGameScene extends Phaser.Scene {
       (ball as any).velocityX = (Math.random() - 0.5) * 4; // Random horizontal velocity
       (ball as any).velocityY = (Math.random() - 0.5) * 4; // Random vertical velocity
       (ball as any).mass = 2;
-      (ball as any).radius = 12;
+      (ball as any).radius = ballRadius; // Updated radius to match visual size
 
       this.context.balls.push(ball);
-      console.log(`Created ball ${i} at (${ball.x}, ${ball.y}) with velocity (${(ball as any).velocityX.toFixed(2)}, ${(ball as any).velocityY.toFixed(2)})`);
     }
   }
 
-  updateRope() {
+  createEnemies() {
+    const currentConfig = this.stageConfigs[this.currentStage - 1];
+    const enemyCount = currentConfig.enemies;
+    
+    // Clear existing enemies
+    this.enemies.forEach(enemy => enemy.destroy());
+    this.enemies = [];
+    this.enemyHealths.clear();
+    
+    // Create enemies based on stage configuration
+    const screenWidth = this.cameras.main.width;
+    const screenHeight = this.cameras.main.height;
 
-    if (this.context.ropeSegments.length > 0) {
-      // Update segment positions based on velocities
-      this.context.ropeSegments.forEach((segment: any, index: number) => {
-        if (!segment.isAnchor) {
-          // Apply stronger damping to velocities
-          segment.velocityX *= 0.85;
-          segment.velocityY *= 0.85;
+    const enemyPositions = [
+      { x: 100, y: 100 },
+      { x: screenWidth - 100, y: 100 },
+      { x: 100, y: screenHeight - 100 },
+      { x: screenWidth - 100, y: screenHeight - 100 },
+      { x: screenWidth / 2, y: 50 },
+      { x: screenWidth / 2, y: screenHeight - 50 }
+    ];
 
-          // Update position based on velocity
-          segment.x += segment.velocityX;
-          segment.y += segment.velocityY;
+    // Generate additional positions for stage 3 (30 enemies)
+    if (this.currentStage === 3) {
+      // Add more enemy positions around the screen, positioned far from center
+      for (let i = 0; i < 24; i++) {
+        const angle = (i / 24) * 2 * Math.PI;
+        const radius = 300 + Math.random() * 200; // Much larger radius (300-500 instead of 150-250)
+        const x = screenWidth / 2 + Math.cos(angle) * radius;
+        const y = screenHeight / 2 + Math.sin(angle) * radius;
+        enemyPositions.push({ x, y });
+      }
+    }
 
-          // Keep segments within bounds
-          segment.x = Math.max(20, Math.min(780, segment.x));
-          segment.y = Math.max(20, Math.min(580, segment.y));
+    // Use only the positions needed for this stage
+    for (let i = 0; i < enemyCount; i++) {
+      let pos: { x: number; y: number };
+      if (i < enemyPositions.length) {
+        pos = enemyPositions[i];
+      } else {
+        // Generate random positions for additional enemies, far from center for stage 3
+        if (this.currentStage === 3) {
+          // Place enemies in corners or edges, far from center
+          const side = Math.floor(Math.random() * 4); // 0: top, 1: right, 2: bottom, 3: left
+          switch (side) {
+            case 0: // top
+              pos = { x: Math.random() * screenWidth, y: 50 + Math.random() * 100 };
+              break;
+            case 1: // right
+              pos = { x: screenWidth - 150 - Math.random() * 100, y: Math.random() * screenHeight };
+              break;
+            case 2: // bottom
+              pos = { x: Math.random() * screenWidth, y: screenHeight - 150 - Math.random() * 100 };
+              break;
+            case 3: // left
+              pos = { x: 50 + Math.random() * 100, y: Math.random() * screenHeight };
+              break;
+            default:
+              pos = { x: 50 + Math.random() * (screenWidth - 100), y: 50 + Math.random() * (screenHeight - 100) };
+          }
+        } else {
+          // Normal random positioning for other stages
+          pos = {
+            x: 50 + Math.random() * (screenWidth - 100),
+            y: 50 + Math.random() * (screenHeight - 100)
+          };
         }
+      }
+      
+      const enemy = this.add.rectangle(pos.x, pos.y, 20, 20, 0x00ff00); // Green rectangle
+      this.enemies.push(enemy);
+      this.enemyHealths.set(enemy, 100);
+    }
+  }
+
+  createUI() {
+    this.healthText = this.add.text(20, 20, `Health: ${this.playerHealth}`, {
+      fontSize: '24px',
+      color: '#ffffff'
+    });
+
+    this.stageText = this.add.text(20, 50, `Stage: ${this.currentStage}`, {
+      fontSize: '24px',
+      color: '#ffffff'
+    });
+
+    this.gameOverText = this.add.text(this.cameras.main.width / 2, this.cameras.main.height / 2, 'GAME OVER', {
+      fontSize: '48px',
+      color: '#ff0000'
+    });
+    this.gameOverText.setOrigin(0.5);
+    this.gameOverText.setVisible(false);
+
+    this.congratulationsText = this.add.text(this.cameras.main.width / 2, this.cameras.main.height / 2 - 50, 'CONGRATULATIONS!', {
+      fontSize: '36px',
+      color: '#00ff00'
+    });
+    this.congratulationsText.setOrigin(0.5);
+    this.congratulationsText.setVisible(false);
+  }
+
+  setupInput() {
+    // Track key states for continuous movement
+    this.input.keyboard.on('keydown-LEFT', () => {
+      this.keys['LEFT'] = true;
+      this.playerDirection = 2; // Left
+    });
+
+    this.input.keyboard.on('keydown-RIGHT', () => {
+      this.keys['RIGHT'] = true;
+      this.playerDirection = 0; // Right
+    });
+
+    this.input.keyboard.on('keydown-UP', () => {
+      this.keys['UP'] = true;
+      this.playerDirection = 3; // Up
+    });
+
+    this.input.keyboard.on('keydown-DOWN', () => {
+      this.keys['DOWN'] = true;
+      this.playerDirection = 1; // Down
+    });
+
+    // Key up events to stop movement
+    this.input.keyboard.on('keyup-LEFT', () => {
+      this.keys['LEFT'] = false;
+    });
+
+    this.input.keyboard.on('keyup-RIGHT', () => {
+      this.keys['RIGHT'] = false;
+    });
+
+    this.input.keyboard.on('keyup-UP', () => {
+      this.keys['UP'] = false;
+    });
+
+    this.input.keyboard.on('keyup-DOWN', () => {
+      this.keys['DOWN'] = false;
+    });
+
+    // Space to shoot
+    this.input.keyboard.on('keydown-SPACE', () => {
+      if (!this.gameOver && this.player && this.time.now - this.lastShootTime > this.shootCooldown) {
+        this.shoot();
+        this.lastShootTime = this.time.now;
+      }
+    });
+  }
+
+  shoot() {
+    if (!this.player) return;
+    
+    // Create bullet at player position
+    const bullet = this.add.circle(this.player.x, this.player.y, 2, 0xffff00); // Yellow circle
+
+    // Calculate direction based on player direction
+    let angle = 0;
+    switch (this.playerDirection) {
+      case 0: // Right
+        angle = 0;
+        break;
+      case 1: // Down
+        angle = Math.PI / 2;
+        break;
+      case 2: // Left
+        angle = Math.PI;
+        break;
+      case 3: // Up
+        angle = -Math.PI / 2;
+        break;
+    }
+
+    // Fast bullet velocity
+    const bulletSpeed = 15;
+    (bullet as any).velocityX = Math.cos(angle) * bulletSpeed;
+    (bullet as any).velocityY = Math.sin(angle) * bulletSpeed;
+    (bullet as any).radius = 2;
+
+    this.bullets.push(bullet);
+  }
+
+  update() {
+    if (this.gameOver) return;
+
+    this.updatePlayerMovement();
+    this.updateBalls();
+    this.updateBullets();
+    this.updateEnemies(); // New method for enemy advancement
+    this.checkBallCollisions();
+    this.checkBulletCollisions();
+    this.checkPlayerCollisions();
+    this.checkEnemyProximity(); // New method for explosion mechanic
+    this.checkStageCompletion(); // New method for stage progression
+    this.updateUI();
+  }
+
+  updatePlayerMovement() {
+    if (!this.player) return;
+
+    // Handle continuous movement based on key states
+    if (this.keys['LEFT']) {
+      this.player.x = Math.max(20, this.player.x - 5);
+      this.playerDirection = 2; // Left
+    }
+
+    if (this.keys['RIGHT']) {
+      this.player.x = Math.min(this.cameras.main.width - 20, this.player.x + 5);
+      this.playerDirection = 0; // Right
+    }
+
+    if (this.keys['UP']) {
+      this.player.y = Math.max(20, this.player.y - 5);
+      this.playerDirection = 3; // Up
+    }
+
+    if (this.keys['DOWN']) {
+      this.player.y = Math.min(this.cameras.main.height - 20, this.player.y + 5);
+      this.playerDirection = 1; // Down
+    }
+  }
+
+  updateEnemies() {
+    // Make enemies slowly advance toward the player
+    this.enemies.forEach((enemy) => {
+      if (!enemy || !enemy.active || !this.player) return;
+
+      // Calculate direction to player
+      const dx = this.player!.x - enemy.x;
+      const dy = this.player!.y - enemy.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance > 0) {
+        // Normalize direction and move toward player
+        const moveX = (dx / distance) * this.enemySpeed;
+        const moveY = (dy / distance) * this.enemySpeed;
+
+        if (enemy && enemy.active) {
+          enemy.x += moveX;
+          enemy.y += moveY;
+        }
+      }
+    });
+  }
+
+  checkEnemyProximity() {
+    // Check if any enemy is within explosion radius
+    for (let i = this.enemies.length - 1; i >= 0; i--) {
+      const enemy = this.enemies[i];
+      if (!enemy || !enemy.active || !this.player) continue;
+
+      const dx = enemy.x - this.player.x;
+      const dy = enemy.y - this.player.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance <= this.explosionRadius) {
+        // Enemy is within proximity - trigger explosion
+        this.triggerExplosion(enemy);
+        
+        // Remove the enemy
+        enemy.destroy();
+        this.enemies.splice(i, 1);
+        this.enemyHealths.delete(enemy);
+      }
+    }
+  }
+
+  triggerExplosion(enemy: Phaser.GameObjects.Rectangle) {
+    // Create explosion effect
+    const explosion = this.add.circle(enemy.x, enemy.y, this.explosionRadius, 0xff0000, 0.3);
+    
+    // Reduce player health
+    this.playerHealth -= this.explosionDamage;
+    
+    // Remove explosion effect after a short time
+    this.time.delayedCall(200, () => {
+      explosion.destroy();
+    });
+
+    // Check for game over
+    if (this.playerHealth <= 0) {
+      this.gameOver = true;
+      this.gameOverText.setVisible(true);
+    }
+  }
+
+  checkStageCompletion() {
+    // Don't check for completion during stage transitions
+    if (this.isTransitioning) return;
+    
+    // Check if all enemies are destroyed
+    if (this.enemies.length === 0) {
+      // Show congratulations message
+      this.congratulationsText.setVisible(true);
+      
+      // Set transitioning flag to prevent multiple calls
+      this.isTransitioning = true;
+      
+      // Wait 2 seconds then move to next stage
+      this.time.delayedCall(2000, () => {
+        this.nextStage();
       });
+    }
+  }
 
-      // Apply constraints multiple times to keep rope together
-      for (let i = 0; i < 10; i++) {
-        this.updateConstraints();
-      }
-
-      // Update rope lines to follow segments
-      this.updateRopeLines();
-
-      // Update weight position to follow the last segment
-      const lastSegment = this.context.ropeSegments[this.context.ropeSegments.length - 1];
-      if (this.weight && this.context.ropeSegments.length > 0) {
-        (this.weight as any).setPosition(lastSegment.x, lastSegment.y + 15);
-      }
+  nextStage() {
+    // Hide congratulations text
+    this.congratulationsText.setVisible(false);
+    
+    // Check if there are more stages
+    if (this.currentStage < this.stageConfigs.length) {
+      this.currentStage++;
+      
+      // Update stage text
+      this.stageText.setText(`Stage: ${this.currentStage}`);
+      
+      // Create new stage content
+      this.createBalls();
+      this.createEnemies();
+      
+      // Reset transitioning flag after creating new content
+      this.isTransitioning = false;
+    } else {
+      // Game completed - show final congratulations
+      this.congratulationsText.setText('GAME COMPLETED!');
+      this.congratulationsText.setVisible(true);
+      this.gameOver = true;
     }
   }
 
   updateBalls() {
     // Update ball physics
     this.context.balls.forEach((ball: any) => {
-      // Apply damping
-      ball.velocityX *= 0.995;
-      ball.velocityY *= 0.995;
+      // No friction - balls never stop
+      ball.velocityX *= 1.0; // No friction
+      ball.velocityY *= 1.0; // No friction
 
       // Update position
       ball.x += ball.velocityX;
       ball.y += ball.velocityY;
 
       // Bounce off walls
-      if (ball.x - ball.radius < 0) {
-        ball.x = ball.radius;
+      if (ball.x - ball.radius < 20) {
+        ball.x = 20 + ball.radius;
         ball.velocityX *= -0.8;
       }
-      if (ball.x + ball.radius > 800) {
-        ball.x = 800 - ball.radius;
+      if (ball.x + ball.radius > this.cameras.main.width - 20) {
+        ball.x = this.cameras.main.width - 20 - ball.radius;
         ball.velocityX *= -0.8;
       }
-      if (ball.y - ball.radius < 0) {
-        ball.y = ball.radius;
+      if (ball.y - ball.radius < 20) {
+        ball.y = 20 + ball.radius;
         ball.velocityY *= -0.8;
       }
-      if (ball.y + ball.radius > 600) {
-        ball.y = 600 - ball.radius;
+      if (ball.y + ball.radius > this.cameras.main.height - 20) {
+        ball.y = this.cameras.main.height - 20 - ball.radius;
         ball.velocityY *= -0.8;
       }
     });
   }
 
-  checkBallRopeCollisions() {
-    // Check collisions between balls and rope segments
-    this.context.balls.forEach((ball: any) => {
-      this.context.ropeSegments.forEach((segment: any) => {
-        if (!segment.isAnchor) {
-          const dx = ball.x - segment.x;
-          const dy = ball.y - segment.y;
+  updateBullets() {
+    // Update bullet positions and remove those off-screen
+    this.bullets = this.bullets.filter(bullet => {
+      (bullet as any).x += (bullet as any).velocityX;
+      (bullet as any).y += (bullet as any).velocityY;
+
+      // Remove bullets that leave the screen
+      if ((bullet as any).x < 0 || (bullet as any).x > this.cameras.main.width ||
+        (bullet as any).y < 0 || (bullet as any).y > this.cameras.main.height) {
+        bullet.destroy();
+        return false;
+      }
+      return true;
+    });
+  }
+
+  checkBallCollisions() {
+    // Check collisions between balls
+    for (let i = 0; i < this.context.balls.length; i++) {
+      for (let j = i + 1; j < this.context.balls.length; j++) {
+        const ball1 = this.context.balls[i] as any;
+        const ball2 = this.context.balls[j] as any;
+
+        const dx = ball2.x - ball1.x;
+        const dy = ball2.y - ball1.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const minDistance = ball1.radius + ball2.radius;
+
+        if (distance < minDistance) {
+          // Collision detected - bounce balls off each other
+          const angle = Math.atan2(dy, dx);
+
+          // Push balls apart
+          const overlap = minDistance - distance;
+          const pushX = Math.cos(angle) * overlap * 0.5;
+          const pushY = Math.sin(angle) * overlap * 0.5;
+
+          ball1.x -= pushX;
+          ball1.y -= pushY;
+          ball2.x += pushX;
+          ball2.y += pushY;
+
+          // Calculate collision response
+          const normalX = dx / distance;
+          const normalY = dy / distance;
+
+          // Relative velocity
+          const relativeVelX = ball2.velocityX - ball1.velocityX;
+          const relativeVelY = ball2.velocityY - ball1.velocityY;
+
+          // Velocity along normal
+          const velocityAlongNormal = relativeVelX * normalX + relativeVelY * normalY;
+
+          // Don't resolve if velocities are separating
+          if (velocityAlongNormal > 0) return;
+
+          // Calculate impulse
+          const restitution = 0.8; // Restored to original value for no friction
+          const impulse = -(1 + restitution) * velocityAlongNormal;
+          const impulseX = impulse * normalX;
+          const impulseY = impulse * normalY;
+
+          // Apply impulse
+          ball1.velocityX -= impulseX / ball1.mass;
+          ball1.velocityY -= impulseY / ball1.mass;
+          ball2.velocityX += impulseX / ball2.mass;
+          ball2.velocityY += impulseY / ball2.mass;
+        }
+      }
+    }
+
+    // Check ball collisions with enemies
+    for (let i = 0; i < this.context.balls.length; i++) {
+      const ball = this.context.balls[i] as any;
+      if (!ball || !ball.active) continue;
+
+      for (let j = this.enemies.length - 1; j >= 0; j--) {
+        const enemy = this.enemies[j];
+        if (!enemy || !enemy.active) continue;
+
+        const dx = ball.x - enemy.x;
+        const dy = ball.y - enemy.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const minDistance = ball.radius + 10; // Enemy radius is 10
+
+        if (distance < minDistance) {
+          // Ball hit enemy - destroy the enemy
+          enemy.destroy();
+          this.enemies.splice(j, 1);
+          this.enemyHealths.delete(enemy);
+        }
+      }
+    }
+  }
+
+  checkBulletCollisions() {
+    // Check bullet collisions with balls and enemies
+    for (let i = this.bullets.length - 1; i >= 0; i--) {
+      const bullet = this.bullets[i];
+      if (!bullet || !bullet.active) continue; // Skip destroyed bullets
+
+      let bulletDestroyed = false;
+
+      // Check bullet vs ball collisions
+      for (let j = 0; j < this.context.balls.length; j++) {
+        const ball = this.context.balls[j] as any;
+        if (!ball || !ball.active) continue; // Skip destroyed balls
+
+        const dx = bullet.x - ball.x;
+        const dy = bullet.y - ball.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const minDistance = (bullet as any).radius + ball.radius;
+
+        if (distance < minDistance) {
+          // Transfer bullet energy to ball
+          const bulletSpeed = Math.sqrt((bullet as any).velocityX ** 2 + (bullet as any).velocityY ** 2);
+          const transferFactor = 0.5;
+
+          ball.velocityX += (bullet as any).velocityX * transferFactor;
+          ball.velocityY += (bullet as any).velocityY * transferFactor;
+
+          // Destroy bullet
+          bullet.destroy();
+          this.bullets.splice(i, 1);
+          bulletDestroyed = true;
+          break; // Exit ball loop since bullet is destroyed
+        }
+      }
+
+      // Check bullet vs enemy collisions (only if bullet still exists)
+      if (!bulletDestroyed && bullet && bullet.active) {
+        for (let j = this.enemies.length - 1; j >= 0; j--) {
+          const enemy = this.enemies[j];
+          if (!enemy || !enemy.active) continue;
+
+          const dx = bullet.x - enemy.x;
+          const dy = bullet.y - enemy.y;
           const distance = Math.sqrt(dx * dx + dy * dy);
-          const minDistance = ball.radius + segment.radius;
+          const minDistance = (bullet as any).radius + 10; // Enemy radius is 10
 
           if (distance < minDistance) {
-            // Collision detected! Transfer energy from ball to rope
-            const angle = Math.atan2(dy, dx);
+            // Reduce enemy health
+            const currentHealth = this.enemyHealths.get(enemy) || 0;
+            const newHealth = currentHealth - 10;
 
-            // Push ball away from segment
-            ball.x = segment.x + Math.cos(angle) * minDistance;
-            ball.y = segment.y + Math.sin(angle) * minDistance;
+            if (newHealth <= 0) {
+              // Destroy enemy
+              enemy.destroy();
+              this.enemies.splice(j, 1);
+              this.enemyHealths.delete(enemy);
+            } else {
+              // Update enemy health
+              this.enemyHealths.set(enemy, newHealth);
+            }
 
-            // Transfer momentum from ball to rope segment (much gentler)
-            const ballSpeed = Math.sqrt(ball.velocityX * ball.velocityX + ball.velocityY * ball.velocityY);
-            const transferFactor = 0.05; // Much smaller transfer factor
-
-            // Add velocity to rope segment (capped to prevent extreme responses)
-            const maxSegmentVelocity = 3; // Maximum velocity for segments
-            const newSegmentVelX = ball.velocityX * transferFactor;
-            const newSegmentVelY = ball.velocityY * transferFactor;
-
-            segment.velocityX += Math.max(-maxSegmentVelocity, Math.min(maxSegmentVelocity, newSegmentVelX));
-            segment.velocityY += Math.max(-maxSegmentVelocity, Math.min(maxSegmentVelocity, newSegmentVelY));
-
-            // Reduce ball velocity (gentler reduction)
-            ball.velocityX *= 0.9; // Gentler reduction (changed from (1 - transferFactor))
-            ball.velocityY *= 0.9; // Gentler reduction (changed from (1 - transferFactor))
-
-            // Add very small randomness (much smaller)
-            segment.velocityX += (Math.random() - 0.5) * 0.2; // Much smaller randomness (changed from * 2)
-            segment.velocityY += (Math.random() - 0.5) * 0.2; // Much smaller randomness (changed from * 2)
-
-            console.log(`Ball hit rope segment! Ball speed: ${ballSpeed.toFixed(2)}, transfer: ${transferFactor}`);
+            // Destroy bullet
+            bullet.destroy();
+            this.bullets.splice(i, 1);
+            break; // Exit enemy loop since bullet is destroyed
           }
         }
-      });
+      }
+    }
+  }
+
+  checkPlayerCollisions() {
+    // Check ball collisions with player
+    this.context.balls.forEach((ball: any) => {
+      const dx = ball.x - this.player.x;
+      const dy = ball.y - this.player.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      const minDistance = ball.radius + 5; // Player radius is 5
+
+      if (distance < minDistance) {
+        // Reduce player health
+        this.playerHealth -= 10;
+
+        // Push ball away from player
+        const angle = Math.atan2(dy, dx);
+        ball.x = this.player.x + Math.cos(angle) * minDistance;
+        ball.y = this.player.y + Math.sin(angle) * minDistance;
+
+        // Check for game over
+        if (this.playerHealth <= 0) {
+          this.gameOver = true;
+          this.gameOverText.setVisible(true);
+        }
+      }
     });
   }
 
-  updateConstraints() {
-    // Apply distance constraints to keep segments connected
-    this.segmentConnections.forEach((connection, index) => {
-      const segment1 = connection.segment1 as any;
-      const segment2 = connection.segment2 as any;
-
-      const dx = segment2.x - segment1.x;
-      const dy = segment2.y - segment1.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-
-      if (distance > 0) {
-        const targetDistance = connection.distance;
-        const difference = (distance - targetDistance) / distance;
-
-        // Very gentle constraint correction
-        const correctionStrength = 0.1; // Very gentle correction strength
-
-        const moveX = dx * difference * correctionStrength;
-        const moveY = dy * difference * correctionStrength;
-
-        // Don't move the anchor (first segment)
-        if (!segment1.isAnchor) {
-          segment1.x -= moveX;
-          segment1.y -= moveY;
-        }
-
-        // Move the second segment
-        segment2.x += moveX;
-        segment2.y += moveY;
-
-        // Debug: Log constraint updates less frequently
-        // if (this.frameCount % 60 === 0) {
-        //   console.log(`Constraint ${index}: distance=${distance.toFixed(1)}, target=${targetDistance}, difference=${difference.toFixed(3)}, move=(${moveX.toFixed(2)}, ${moveY.toFixed(2)})`);
-        // }
-      }
-    });
+  updateUI() {
+    this.healthText.setText(`Health: ${this.playerHealth}`);
   }
 } 

@@ -14,11 +14,16 @@ export default function Hoot() {
       console.log("HootGameScene imported:", HootGameScene);
       console.log("hootContext imported:", hootContext);
       
+      // Get the container dimensions
+      const container = document.getElementById('phaser');
+      const containerWidth = container?.clientWidth || window.innerWidth;
+      const containerHeight = container?.clientHeight || window.innerHeight;
+      
       const config: Phaser.Types.Core.GameConfig = {
         type: Phaser.AUTO,
         parent: "phaser",
-        width: 800,
-        height: 600,
+        width: containerWidth,
+        height: containerHeight,
         backgroundColor: "#2d2d2d",
         pixelArt: true,
         physics: {
@@ -39,13 +44,14 @@ export default function Hoot() {
   }, []);
 
   return (
-    <div>
-      <h1>Hoot</h1>
-      <Link to="/" className="text-xl text-blue-600 underline">
-        Back
-      </Link>
-      <div id="phaser"></div>
-      <div>Hoot game - Rope & Ball Physics Demo!</div>
+    <div className="w-full h-screen flex flex-col">
+      <div className="flex justify-between items-center p-4 bg-gray-800 text-white">
+        <h1 className="text-2xl font-bold">Hoot - Shooting Game</h1>
+        <Link to="/" className="text-xl text-blue-400 underline hover:text-blue-300">
+          Back to Menu
+        </Link>
+      </div>
+      <div id="phaser" className="flex-1 w-full h-full"></div>
     </div>
   );
 } 
