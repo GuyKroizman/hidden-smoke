@@ -50,7 +50,7 @@ export class HootGameScene extends Phaser.Scene {
     "Now I know AI will definitely take over the world. You poor excuse for a human."
   ];
   private playerSize: number = 15; // Player size (width and height)
-  private debugLevel: number = 0; // 0 = normal game, 1-4 = start at specific level
+  private debugLevel: number = 4; // 0 = normal game, 1-4 = start at specific level
 
   constructor(context: HootGameContext) {
     super("hoot-game-scene");
@@ -167,7 +167,16 @@ export class HootGameScene extends Phaser.Scene {
 
   createPlayer() {
     // Create a container for the complex player object
-    this.player = this.add.container(this.cameras.main.width / 2, this.cameras.main.height / 2);
+    let playerX = this.cameras.main.width / 2;
+    let playerY = this.cameras.main.height / 2;
+    
+    // For level 4, position player at x=80 and y=half screen height
+    if (this.currentStage === 4) {
+      playerX = 80;
+      playerY = this.cameras.main.height / 2;
+    }
+    
+    this.player = this.add.container(playerX, playerY);
 
     // Array to hold all player shapes
     const playerShapes: Phaser.GameObjects.GameObject[] = [];
@@ -1032,10 +1041,17 @@ export class HootGameScene extends Phaser.Scene {
         // Update stage text
         this.stageText.setText(`Stage: ${this.currentStage}`);
 
-        // Reset player position to center of screen
+        // Reset player position
         if (this.player) {
-          this.player.x = this.cameras.main.width / 2;
-          this.player.y = this.cameras.main.height / 2;
+          if (this.currentStage === 4) {
+            // For level 4, position player at x=80 and y=half screen height
+            this.player.x = 80;
+            this.player.y = this.cameras.main.height / 2;
+          } else {
+            // For other levels, center the player
+            this.player.x = this.cameras.main.width / 2;
+            this.player.y = this.cameras.main.height / 2;
+          }
         }
 
         // Create new stage content
