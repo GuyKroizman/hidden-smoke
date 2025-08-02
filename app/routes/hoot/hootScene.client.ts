@@ -170,11 +170,15 @@ export class HootGameScene extends Phaser.Scene {
     this.player = this.add.container(this.cameras.main.width / 2, this.cameras.main.height / 2);
 
     // Array to hold all player shapes
-    const playerShapes: Phaser.GameObjects.Shape[] = [];
+    const playerShapes: Phaser.GameObjects.GameObject[] = [];
 
-    // Create the main black rectangle body
-    const body = this.add.rectangle(0, 0, this.playerSize, this.playerSize, 0x000000); // Black rectangle
-    playerShapes.push(body);
+    // Create the main brown capsule body using graphics
+    const bodyGraphics = this.add.graphics();
+    bodyGraphics.fillStyle(0x8B4513); // Brown color
+    bodyGraphics.fillRoundedRect(-this.playerSize / 2, -this.playerSize / 2, this.playerSize, this.playerSize, this.playerSize / 2);
+    playerShapes.push(bodyGraphics);
+
+
 
     const eyeSize = 5;
     const cornerOffset = (this.playerSize / 2) - 3;
@@ -451,14 +455,15 @@ export class HootGameScene extends Phaser.Scene {
     }
 
     // Move enemy2 based on current mode
+    let moveX = 0;
+    let moveY = 0;
+
     if (this.enemy2Mode === 'chase') {
       // Chase mode: move toward player
       if (distanceToPlayer > 0) {
         const moveSpeed = this.enemy2Speed;
-        const moveX = (dxToPlayer / distanceToPlayer) * moveSpeed;
-        const moveY = (dyToPlayer / distanceToPlayer) * moveSpeed;
-        this.enemy2.x += moveX;
-        this.enemy2.y += moveY;
+        moveX = (dxToPlayer / distanceToPlayer) * moveSpeed;
+        moveY = (dyToPlayer / distanceToPlayer) * moveSpeed;
       }
     } else {
       // Avoid mode: move away from closest ball
@@ -469,13 +474,32 @@ export class HootGameScene extends Phaser.Scene {
 
         if (distanceFromBall > 0) {
           const moveSpeed = this.enemy2AvoidSpeed;
-          const moveX = (dxFromBall / distanceFromBall) * moveSpeed;
-          const moveY = (dyFromBall / distanceFromBall) * moveSpeed;
-          this.enemy2.x += moveX;
-          this.enemy2.y += moveY;
+          moveX = (dxFromBall / distanceFromBall) * moveSpeed;
+          moveY = (dyFromBall / distanceFromBall) * moveSpeed;
         }
       }
     }
+
+    // Check collision with regular enemies
+    this.enemies.forEach((enemy) => {
+      if (!enemy || !enemy.active) return;
+
+      const enemyDx = enemy.x - this.enemy2.x;
+      const enemyDy = enemy.y - this.enemy2.y;
+      const enemyDistance = Math.sqrt(enemyDx * enemyDx + enemyDy * enemyDy);
+      const minDistance = 85; // Minimum distance (60 + 10 + 15 buffer)
+
+      if (enemyDistance < minDistance && enemyDistance > 0) {
+        // Push away from regular enemy
+        const pushForce = (minDistance - enemyDistance) / minDistance;
+        moveX -= (enemyDx / enemyDistance) * pushForce * 2;
+        moveY -= (enemyDy / enemyDistance) * pushForce * 2;
+      }
+    });
+
+    // Apply movement
+    this.enemy2.x += moveX;
+    this.enemy2.y += moveY;
 
     // Keep enemy2 within screen bounds (accounting for 120x120 size)
     const enemy2Radius = 60; // Half of 120x120
@@ -771,8 +795,40 @@ export class HootGameScene extends Phaser.Scene {
 
       if (distance > 0) {
         // Normalize direction and move toward player
-        const moveX = (dx / distance) * this.enemySpeed;
-        const moveY = (dy / distance) * this.enemySpeed;
+        let moveX = (dx / distance) * this.enemySpeed;
+        let moveY = (dy / distance) * this.enemySpeed;
+
+        // Check collision with other enemies
+        this.enemies.forEach((otherEnemy) => {
+          if (otherEnemy === enemy || !otherEnemy || !otherEnemy.active) return;
+
+          const enemyDx = otherEnemy.x - enemy.x;
+          const enemyDy = otherEnemy.y - enemy.y;
+          const enemyDistance = Math.sqrt(enemyDx * enemyDx + enemyDy * enemyDy);
+          const minDistance = 25; // Minimum distance between enemies (10 + 10 + 5 buffer)
+
+          if (enemyDistance < minDistance && enemyDistance > 0) {
+            // Push away from other enemy
+            const pushForce = (minDistance - enemyDistance) / minDistance;
+            moveX -= (enemyDx / enemyDistance) * pushForce * 2;
+            moveY -= (enemyDy / enemyDistance) * pushForce * 2;
+          }
+        });
+
+        // Check collision with enemy2 (if it exists)
+        if (this.enemy2 && this.enemy2.active) {
+          const enemy2Dx = this.enemy2.x - enemy.x;
+          const enemy2Dy = this.enemy2.y - enemy.y;
+          const enemy2Distance = Math.sqrt(enemy2Dx * enemy2Dx + enemy2Dy * enemy2Dy);
+          const minDistanceWithEnemy2 = 85; // Minimum distance (10 + 60 + 15 buffer)
+
+          if (enemy2Distance < minDistanceWithEnemy2 && enemy2Distance > 0) {
+            // Push away from enemy2
+            const pushForce = (minDistanceWithEnemy2 - enemy2Distance) / minDistanceWithEnemy2;
+            moveX -= (enemy2Dx / enemy2Distance) * pushForce * 3;
+            moveY -= (enemy2Dy / enemy2Distance) * pushForce * 3;
+          }
+        }
 
         if (enemy && enemy.active) {
           enemy.x += moveX;
