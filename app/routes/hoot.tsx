@@ -9,16 +9,12 @@ export default function Hoot() {
   const phaserRef = useRef<Game>()
 
   useEffect(() => {
-    if(!phaserRef.current) {
-      console.log("Creating Hoot game...");
-      console.log("HootGameScene imported:", HootGameScene);
-      console.log("hootContext imported:", hootContext);
-      
-      // Get the container dimensions
+    if (!phaserRef.current) {
+
       const container = document.getElementById('phaser');
       const containerWidth = container?.clientWidth || window.innerWidth;
       const containerHeight = container?.clientHeight || window.innerHeight;
-      
+
       const config: Phaser.Types.Core.GameConfig = {
         type: Phaser.AUTO,
         parent: "phaser",
@@ -36,8 +32,6 @@ export default function Hoot() {
         scene: [new HootGameScene(hootContext)]
       };
 
-      console.log("Game config created with scene:", config.scene);
-      
       const game = new phaser.Game(config);
       phaserRef.current = game;
     }

@@ -24,7 +24,7 @@ export class HootGameScene extends Phaser.Scene {
   private stageConfigs = [
     { enemies: 1, balls: 1 }, // Stage 1
     { enemies: 4, balls: 2 }, // Stage 2
-    { enemies: 30, balls: 4 }, // Stage 3 (2 balls size 60, 2 balls size 10)
+    { enemies: 14, balls: 4 }, // Stage 3 (4 balls size 60)
   ];
   private isTransitioning: boolean = false; // Flag to prevent premature stage completion
 
@@ -85,25 +85,86 @@ export class HootGameScene extends Phaser.Scene {
     for (let i = 0; i < ballCount; i++) {
       let ballRadius = 36; // Default radius for stages 1 and 2
       
-      // Stage 3 has different ball sizes
+      // Stage 3 has all balls the same size
       if (this.currentStage === 3) {
-        if (i < 2) {
-          ballRadius = 60; // First 2 balls are size 60
-        } else {
-          ballRadius = 10; // Last 2 balls are size 10
-        }
+        ballRadius = 60; // All 4 balls are size 60
       }
       
-      const ball = this.add.circle(
-        100 + Math.random() * (this.cameras.main.width - 200), // Random X position
-        50 + Math.random() * (this.cameras.main.height - 100),  // Random Y position
-        ballRadius,
-        0xff0000 // Red color
-      );
+              // Position balls around the player for stage 3
+        let ballX, ballY;
+        if (this.currentStage === 3) {
+          // For stage 3, position balls around the player
+          const playerX = this.cameras.main.width / 2;
+          const playerY = this.cameras.main.height / 2;
+          
+          switch (i) {
+            case 0: // Ball above player
+              ballX = playerX;
+              ballY = playerY - 20;
+              break;
+            case 1: // Ball below player
+              ballX = playerX;
+              ballY = playerY + 20;
+              break;
+            case 2: // Ball to the right of player
+              ballX = playerX + 20;
+              ballY = playerY;
+              break;
+            case 3: // Ball to the left of player
+              ballX = playerX - 20;
+              ballY = playerY;
+              break;
+            default:
+              ballX = playerX;
+              ballY = playerY;
+          }
+        } else {
+          // For other stages, use random positioning
+          ballX = 100 + Math.random() * (this.cameras.main.width - 200);
+          ballY = 50 + Math.random() * (this.cameras.main.height - 100);
+        }
+        
+        const ball = this.add.circle(
+          ballX,
+          ballY,
+          ballRadius,
+          0xff0000 // Red color
+        );
 
-      // Add custom physics properties
-      (ball as any).velocityX = (Math.random() - 0.5) * 4; // Random horizontal velocity
-      (ball as any).velocityY = (Math.random() - 0.5) * 4; // Random vertical velocity
+        // Add custom physics properties with specific directions for stage 3
+        let velocityX, velocityY;
+        if (this.currentStage === 3) {
+          // Stage 3 has specific slow directions for each ball
+          const slowSpeed = 1; // Slow speed
+          switch (i) {
+            case 0: // Ball above player - move upward
+              velocityX = 0;
+              velocityY = -slowSpeed;
+              break;
+            case 1: // Ball below player - move downward
+              velocityX = 0;
+              velocityY = slowSpeed;
+              break;
+            case 2: // Ball to the right of player - move rightward
+              velocityX = slowSpeed;
+              velocityY = 0;
+              break;
+            case 3: // Ball to the left of player - move leftward
+              velocityX = -slowSpeed;
+              velocityY = 0;
+              break;
+            default:
+              velocityX = (Math.random() - 0.5) * 4;
+              velocityY = (Math.random() - 0.5) * 4;
+          }
+        } else {
+          // Random velocity for other stages
+          velocityX = (Math.random() - 0.5) * 4;
+          velocityY = (Math.random() - 0.5) * 4;
+        }
+        
+        (ball as any).velocityX = velocityX;
+        (ball as any).velocityY = velocityY;
       (ball as any).mass = 2;
       (ball as any).radius = ballRadius; // Updated radius to match visual size
 
@@ -425,6 +486,12 @@ export class HootGameScene extends Phaser.Scene {
       
       // Update stage text
       this.stageText.setText(`Stage: ${this.currentStage}`);
+      
+      // Reset player position to center of screen
+      if (this.player) {
+        this.player.x = this.cameras.main.width / 2;
+        this.player.y = this.cameras.main.height / 2;
+      }
       
       // Create new stage content
       this.createBalls();
