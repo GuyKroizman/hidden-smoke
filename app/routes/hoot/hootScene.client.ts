@@ -39,6 +39,14 @@ export class HootGameScene extends Phaser.Scene {
   private gameState: 'menu' | 'playing' | 'gameOver' = 'menu'; // Game state management
   private menuTitle!: Phaser.GameObjects.Text;
   private menuSubtitle!: Phaser.GameObjects.Text;
+  private creditsText!: Phaser.GameObjects.Text;
+  private instructionsText!: Phaser.GameObjects.Text;
+  private menuPlayer!: Phaser.GameObjects.Container;
+  private menuEnemy!: Phaser.GameObjects.Rectangle;
+  private menuBall!: Phaser.GameObjects.Shape;
+  private menuPlayerLabel!: Phaser.GameObjects.Text;
+  private menuEnemyLabel!: Phaser.GameObjects.Text;
+  private menuBallLabel!: Phaser.GameObjects.Text;
   private isStageFrozen: boolean = false; // Freeze state for stage transitions
   private freezeCountdownText!: Phaser.GameObjects.Text;
   private freezeTimer: number = 0; // Timer for freeze countdown
@@ -682,7 +690,7 @@ export class HootGameScene extends Phaser.Scene {
 
     // Create menu UI
     this.menuTitle = this.add.text(this.cameras.main.width / 2, this.cameras.main.height / 2 - 100, 'LOOPLESS GAME', {
-      fontSize: '48px',
+      fontSize: '64px',
       color: '#ffffff'
     });
     this.menuTitle.setOrigin(0.5);
@@ -700,6 +708,76 @@ export class HootGameScene extends Phaser.Scene {
     });
     this.freezeCountdownText.setOrigin(0.5);
     this.freezeCountdownText.setVisible(false);
+
+    // Create credits text
+    this.creditsText = this.add.text(this.cameras.main.width / 2, this.cameras.main.height - 40, 'Sound and Music by Hed Gilboa', {
+      fontSize: '26px',
+      color: '#1a365d'
+    });
+    this.creditsText.setOrigin(0.5);
+    this.creditsText.setVisible(false);
+
+    // Create instructions text
+    this.instructionsText = this.add.text(200, 200, 'Game Instructions:', {
+      fontSize: '20px',
+      color: '#1a365d'
+    });
+    this.instructionsText.setOrigin(0.5);
+    this.instructionsText.setVisible(false);
+
+    // Create menu game objects (static, non-moving) - in rows
+    this.createMenuGameObjects();
+  }
+
+  createMenuGameObjects() {
+    // Create a static player for the menu (similar to the real player but simplified)
+    this.menuPlayer = this.add.container(150, 240);
+
+    // Create player body (brown capsule)
+    const bodyGraphics = this.add.graphics();
+    bodyGraphics.fillStyle(0x8B4513); // Brown color
+    bodyGraphics.fillRoundedRect(-this.playerSize / 2, -this.playerSize / 2, this.playerSize, this.playerSize, this.playerSize / 2);
+    this.menuPlayer.add(bodyGraphics);
+
+    // Create player eyes
+    const leftEye = this.add.circle(-5, -5, 3, 0xffff00);
+    const rightEye = this.add.circle(5, -5, 3, 0xffff00);
+    this.menuPlayer.add(leftEye);
+    this.menuPlayer.add(rightEye);
+
+    // Create player pupils
+    const leftPupil = this.add.circle(-5, -5, 1, 0x000000);
+    const rightPupil = this.add.circle(5, -5, 1, 0x000000);
+    this.menuPlayer.add(leftPupil);
+    this.menuPlayer.add(rightPupil);
+
+    // Create menu enemy (green rectangle) - second row
+    this.menuEnemy = this.add.rectangle(150, 270, 20, 20, 0x00ff00);
+
+    // Create menu ball (yellow circle) - third row
+    this.menuBall = this.add.circle(150, 300, 15, 0xff0000);
+
+    // Create labels - arranged in rows
+    this.menuPlayerLabel = this.add.text(200, 240, 'This is you', {
+      fontSize: '16px',
+      color: '#1a365d'
+    });
+    this.menuPlayerLabel.setOrigin(0, 0.5);
+    this.menuPlayerLabel.setVisible(false);
+
+    this.menuEnemyLabel = this.add.text(200, 270, 'This is a very bad enemy. You can tell because it is green', {
+      fontSize: '16px',
+      color: '#1a365d'
+    });
+    this.menuEnemyLabel.setOrigin(0, 0.5);
+    this.menuEnemyLabel.setVisible(false);
+
+    this.menuBallLabel = this.add.text(200, 300, 'These massive things will roll and can hit you or the enemy', {
+      fontSize: '16px',
+      color: '#1a365d'
+    });
+    this.menuBallLabel.setOrigin(0, 0.5);
+    this.menuBallLabel.setVisible(false);
   }
 
   setupInput() {
@@ -1011,6 +1089,16 @@ export class HootGameScene extends Phaser.Scene {
     this.congratulationsText.setVisible(false);
     this.stageTimeText.setVisible(false);
 
+    // Show menu game objects and instructions
+    this.creditsText.setVisible(true);
+    this.instructionsText.setVisible(true);
+    this.menuPlayer.setVisible(true);
+    this.menuEnemy.setVisible(true);
+    this.menuBall.setVisible(true);
+    this.menuPlayerLabel.setVisible(true);
+    this.menuEnemyLabel.setVisible(true);
+    this.menuBallLabel.setVisible(true);
+
     // Stop background music when returning to menu
     this.sound.stopAll();
   }
@@ -1024,6 +1112,14 @@ export class HootGameScene extends Phaser.Scene {
     // Hide menu
     this.menuTitle.setVisible(false);
     this.menuSubtitle.setVisible(false);
+    this.creditsText.setVisible(false);
+    this.instructionsText.setVisible(false);
+    this.menuPlayer.setVisible(false);
+    this.menuEnemy.setVisible(false);
+    this.menuBall.setVisible(false);
+    this.menuPlayerLabel.setVisible(false);
+    this.menuEnemyLabel.setVisible(false);
+    this.menuBallLabel.setVisible(false);
 
     // Show game UI
     this.healthText.setVisible(true);
