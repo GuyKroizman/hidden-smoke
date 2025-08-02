@@ -50,7 +50,7 @@ export class HootGameScene extends Phaser.Scene {
     "Now I know AI will definitely take over the world. You poor excuse for a human."
   ];
   private playerSize: number = 15; // Player size (width and height)
-  private debugLevel: number = 4; // 0 = normal game, 1-4 = start at specific level
+  private debugLevel: number = 0; // 0 = normal game, 1-4 = start at specific level
 
   constructor(context: HootGameContext) {
     super("hoot-game-scene");
@@ -758,8 +758,8 @@ export class HootGameScene extends Phaser.Scene {
     // Play shoot sound
     this.sound.play('shoot');
 
-    // Create bullet at player position
-    const bullet = this.add.circle(this.player.x, this.player.y, 2, 0x000000); // Black circle
+    // Create bullet at player position (bigger size)
+    const bullet = this.add.circle(this.player.x, this.player.y, 5, 0x000000); // Black circle, radius 5
 
     // Calculate direction based on player direction
     let angle = 0;
@@ -782,7 +782,7 @@ export class HootGameScene extends Phaser.Scene {
     const bulletSpeed = 20;
     (bullet as any).velocityX = Math.cos(angle) * bulletSpeed;
     (bullet as any).velocityY = Math.sin(angle) * bulletSpeed;
-    (bullet as any).radius = 2;
+    (bullet as any).radius = 5; // Updated radius
 
     this.bullets.push(bullet);
   }
