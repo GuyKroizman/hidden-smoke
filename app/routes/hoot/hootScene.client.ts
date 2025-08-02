@@ -928,10 +928,30 @@ export class HootGameScene extends Phaser.Scene {
           this.showMenu();
         });
       } else {
-        // Normal game flow - wait 2 seconds then move to next stage
-        this.time.delayedCall(2000, () => {
-          this.nextStage();
-        });
+        // Normal game flow
+        if (this.currentStage === 4) {
+          // Stage 4 is the final stage - show congratulations and return to menu
+          const stageTime = Math.round((this.time.now - this.stageStartTime) / 1000);
+          
+          this.congratulationsText.setText('"Congratulation" you made it to the end :)');
+          this.congratulationsText.setVisible(true);
+          
+          this.stageTimeText.setText(`And it took you just ${stageTime} seconds.`);
+          this.stageTimeText.setVisible(true);
+          
+          this.gameOver = true;
+          this.gameState = 'gameOver';
+          
+          // Return to menu after 3 seconds
+          this.time.delayedCall(3000, () => {
+            this.showMenu();
+          });
+        } else {
+          // Other stages - wait 2 seconds then move to next stage
+          this.time.delayedCall(2000, () => {
+            this.nextStage();
+          });
+        }
       }
     }
   }
