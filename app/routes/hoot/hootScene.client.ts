@@ -50,6 +50,7 @@ export class HootGameScene extends Phaser.Scene {
     "Now I know AI will definitely take over the world. You poor excuse for a human."
   ];
   private playerSize: number = 15; // Player size (width and height)
+  private debugLevel: number = 4; // 0 = normal game, 1-4 = start at specific level
 
   constructor(context: HootGameContext) {
     super("hoot-game-scene");
@@ -182,7 +183,7 @@ export class HootGameScene extends Phaser.Scene {
     playerShapes.push(leftEye);
     playerShapes.push(rightEye);
 
-    const pupilSize = 1;
+    const pupilSize = 2;
     const leftPupil = this.add.circle(-cornerOffset, -cornerOffset, pupilSize, 0x000000);
     const rightPupil = this.add.circle(cornerOffset, -cornerOffset, pupilSize, 0x000000);
 
@@ -347,7 +348,7 @@ export class HootGameScene extends Phaser.Scene {
     enemy2Shapes.push(rightEye);
 
     // Create pupils (always look at player)
-    const pupilSize = 1;
+    const pupilSize = 3;
     const leftPupil = this.add.circle(-eyeOffset, -eyeOffset, pupilSize, 0x000000);
     const rightPupil = this.add.circle(eyeOffset, -eyeOffset, pupilSize, 0x000000);
     enemy2Shapes.push(leftPupil);
@@ -561,7 +562,7 @@ export class HootGameScene extends Phaser.Scene {
   }
 
   createUI() {
-    this.healthText = this.add.text(20, 20, `Health: ${this.playerHealth}`, {
+    this.healthText = this.add.text(80, 20, `HP: ${this.playerHealth}`, {
       fontSize: '32px',
       color: '#1a365d'
     });
@@ -848,10 +849,17 @@ export class HootGameScene extends Phaser.Scene {
       // Set transitioning flag to prevent multiple calls
       this.isTransitioning = true;
 
-      // Wait 2 seconds then move to next stage
-      this.time.delayedCall(2000, () => {
-        this.nextStage();
-      });
+      // In debug mode, just show completion message and return to menu
+      if (this.debugLevel > 0) {
+        this.time.delayedCall(2000, () => {
+          this.showMenu();
+        });
+      } else {
+        // Normal game flow - wait 2 seconds then move to next stage
+        this.time.delayedCall(2000, () => {
+          this.nextStage();
+        });
+      }
     }
   }
 
@@ -873,7 +881,7 @@ export class HootGameScene extends Phaser.Scene {
   startGame() {
     this.gameState = 'playing';
     this.gameOver = false;
-    this.currentStage = 1;
+    this.currentStage = this.debugLevel > 0 ? this.debugLevel : 1;
     this.playerHealth = 100;
 
     // Hide menu
