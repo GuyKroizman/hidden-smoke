@@ -96,8 +96,8 @@ export class HootGameScene extends Phaser.Scene {
     const body = this.add.rectangle(0, 0, this.playerSize, this.playerSize, 0x000000); // Black rectangle
     playerShapes.push(body);
 
-    const eyeSize = 4;
-    const cornerOffset = (this.playerSize / 2) - 2;
+    const eyeSize = 5;
+    const cornerOffset = (this.playerSize / 2) - 3;
     const leftEye = this.add.circle(-cornerOffset, -cornerOffset, eyeSize, 0xffffff);
     const rightEye = this.add.circle(cornerOffset, -cornerOffset, eyeSize, 0xffffff);
     playerShapes.push(leftEye);
