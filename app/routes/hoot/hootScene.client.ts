@@ -5,6 +5,10 @@ export class HootGameScene extends Phaser.Scene {
   context: HootGameContext;
   private player!: Phaser.GameObjects.Container;
   private playerHealth: number = 100;
+  private leftPupil!: Phaser.GameObjects.Shape;
+  private rightPupil!: Phaser.GameObjects.Shape;
+  private pupilUpdateTimer: number = 0;
+  private pupilUpdateInterval: number = 4000; // 4 seconds in milliseconds
   private bullets: Phaser.GameObjects.Shape[] = [];
   private enemies: Phaser.GameObjects.Rectangle[] = [];
   private enemyHealths: Map<Phaser.GameObjects.Rectangle, number> = new Map();
@@ -106,10 +110,18 @@ export class HootGameScene extends Phaser.Scene {
     const pupilSize = 1;
     const leftPupil = this.add.circle(-cornerOffset, -cornerOffset, pupilSize, 0x000000);
     const rightPupil = this.add.circle(cornerOffset, -cornerOffset, pupilSize, 0x000000);
+    
+    // Store references to pupils for updating their positions
+    this.leftPupil = leftPupil;
+    this.rightPupil = rightPupil;
+    
     playerShapes.push(leftPupil);
     playerShapes.push(rightPupil);
 
     this.player.add(playerShapes);
+    
+    // Initialize pupil direction
+    this.updatePupilDirection();
   }
 
   createBalls() {
@@ -445,6 +457,7 @@ export class HootGameScene extends Phaser.Scene {
     this.checkPlayerCollisions();
     this.checkEnemyProximity(); // New method for explosion mechanic
     this.checkStageCompletion(); // New method for stage progression
+    this.updatePupilDirection(); // Update pupil direction
     this.updateUI();
   }
 
@@ -970,5 +983,68 @@ export class HootGameScene extends Phaser.Scene {
 
   updateUI() {
     this.healthText.setText(`Health: ${this.playerHealth}`);
+  }
+
+  updatePupilDirection() {
+    if (!this.leftPupil || !this.rightPupil || this.gameState !== 'playing') return;
+
+    // Update timer
+    this.pupilUpdateTimer += 16; // Assuming 60 FPS (16ms per frame)
+
+    // Check if it's time to update pupil direction (every 4 seconds)
+    if (this.pupilUpdateTimer >= this.pupilUpdateInterval) {
+      this.pupilUpdateTimer = 0;
+
+      // Find a random enemy to look at
+      const activeEnemies = this.enemies.filter(enemy => enemy && enemy.active);
+      
+      if (activeEnemies.length > 0) {
+        // Pick a random enemy
+        const randomEnemy = activeEnemies[Math.floor(Math.random() * activeEnemies.length)];
+        
+        // Calculate direction from player to enemy
+        const dx = randomEnemy.x - this.player.x;
+        const dy = randomEnemy.y - this.player.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance > 0) {
+          // Normalize direction
+          const dirX = dx / distance;
+          const dirY = dy / distance;
+          
+          // Calculate pupil offset within the eye (close to perimeter)
+          const eyeRadius = 5; // eyeSize
+          const pupilOffset = 3; // How close to the edge of the eye
+          const maxOffset = eyeRadius - 1; // Leave 1px margin
+          
+          // Calculate new pupil positions
+          const leftEyeX = -((this.playerSize / 2) - 3); // Left eye position
+          const rightEyeX = (this.playerSize / 2) - 3;   // Right eye position
+          const eyeY = -((this.playerSize / 2) - 3);     // Eye Y position
+          
+          // Update left pupil position
+          const leftPupilX = leftEyeX + (dirX * pupilOffset);
+          const leftPupilY = eyeY + (dirY * pupilOffset);
+          this.leftPupil.x = Math.max(leftEyeX - maxOffset, Math.min(leftEyeX + maxOffset, leftPupilX));
+          this.leftPupil.y = Math.max(eyeY - maxOffset, Math.min(eyeY + maxOffset, leftPupilY));
+          
+          // Update right pupil position
+          const rightPupilX = rightEyeX + (dirX * pupilOffset);
+          const rightPupilY = eyeY + (dirY * pupilOffset);
+          this.rightPupil.x = Math.max(rightEyeX - maxOffset, Math.min(rightEyeX + maxOffset, rightPupilX));
+          this.rightPupil.y = Math.max(eyeY - maxOffset, Math.min(eyeY + maxOffset, rightPupilY));
+        }
+      } else {
+        // No enemies - look straight ahead
+        const leftEyeX = -((this.playerSize / 2) - 3);
+        const rightEyeX = (this.playerSize / 2) - 3;
+        const eyeY = -((this.playerSize / 2) - 3);
+        
+        this.leftPupil.x = leftEyeX;
+        this.leftPupil.y = eyeY;
+        this.rightPupil.x = rightEyeX;
+        this.rightPupil.y = eyeY;
+      }
+    }
   }
 } 
