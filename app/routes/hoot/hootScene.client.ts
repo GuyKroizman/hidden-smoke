@@ -50,7 +50,7 @@ export class HootGameScene extends Phaser.Scene {
     "Now I know AI will definitely take over the world. You poor excuse for a human."
   ];
   private playerSize: number = 15; // Player size (width and height)
-  private debugLevel: number = 4; // 0 = normal game, 1-4 = start at specific level
+  private debugLevel: number = 0; // 0 = normal game, 1-4 = start at specific level
 
   constructor(context: HootGameContext) {
     super("hoot-game-scene");
@@ -169,13 +169,13 @@ export class HootGameScene extends Phaser.Scene {
     // Create a container for the complex player object
     let playerX = this.cameras.main.width / 2;
     let playerY = this.cameras.main.height / 2;
-    
+
     // For level 4, position player at x=80 and y=half screen height
     if (this.currentStage === 4) {
       playerX = 80;
       playerY = this.cameras.main.height / 2;
     }
-    
+
     this.player = this.add.container(playerX, playerY);
 
     // Array to hold all player shapes
@@ -1379,6 +1379,44 @@ export class HootGameScene extends Phaser.Scene {
         }
       }
     });
+
+    // Check enemy2 collision with player (only on stage 4)
+    if (this.currentStage === 4 && this.enemy2 && this.enemy2.active) {
+      const dx = this.enemy2.x - this.player.x;
+      const dy = this.enemy2.y - this.player.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      const minDistance = 60 + (this.playerSize / 2); // Enemy2 radius (60) + player radius
+
+      if (distance < minDistance) {
+        // Reduce player health
+        this.playerHealth -= 20; // More damage than ball collision
+
+        // Push enemy2 away from player
+        const angle = Math.atan2(dy, dx);
+        this.enemy2.x = this.player.x + Math.cos(angle) * minDistance;
+        this.enemy2.y = this.player.y + Math.sin(angle) * minDistance;
+
+        // Check for game over
+        if (this.playerHealth <= 0) {
+          this.gameOver = true;
+          this.gameState = 'gameOver';
+
+          // Make game over text bigger
+          this.gameOverText.setFontSize('96px');
+          this.gameOverText.setVisible(true);
+
+          // Show random death message
+          const randomDeathMessage = this.deathMessages[Math.floor(Math.random() * this.deathMessages.length)];
+          this.stageTimeText.setText(randomDeathMessage);
+          this.stageTimeText.setVisible(true);
+
+          // Return to menu after 3 seconds
+          this.time.delayedCall(3000, () => {
+            this.showMenu();
+          });
+        }
+      }
+    }
   }
 
   playRandomBallHitBallSound() {
