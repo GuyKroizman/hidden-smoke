@@ -50,7 +50,7 @@ export class HootGameScene extends Phaser.Scene {
     "Now I know AI will definitely take over the world. You poor excuse for a human."
   ];
   private playerSize: number = 15; // Player size (width and height)
-  private debugLevel: number = 4; // 0 = normal game, 1-4 = start at specific level
+  private debugLevel: number = 0; // 0 = normal game, 1-4 = start at specific level
 
   constructor(context: HootGameContext) {
     super("hoot-game-scene");
@@ -330,39 +330,46 @@ export class HootGameScene extends Phaser.Scene {
 
   createEnemy2() {
     // Create enemy2 container
-    this.enemy2 = this.add.container(100, 100); // Start near top left corner
+    this.enemy2 = this.add.container(80, 80); // Start further from edges to account for larger size
 
     // Array to hold all enemy2 shapes
     const enemy2Shapes: Phaser.GameObjects.Shape[] = [];
 
-    // Create the main green rectangle body (30x30)
-    const body = this.add.rectangle(0, 0, 30, 30, 0x00ff00); // Green rectangle
+    // Create the main green rectangle body (4x bigger: 30x30 -> 120x120)
+    const body = this.add.rectangle(0, 0, 120, 120, 0x00ff00); // Green rectangle
     enemy2Shapes.push(body);
 
-    // Create eyes
-    const eyeSize = 4;
-    const eyeOffset = 8;
+    // Create diagonal red eyebrows as rectangles - meaner look (4x bigger)
+    const eyebrowWidth = 40; // 4x bigger: 10 -> 40
+    const eyebrowHeight = 16; // 4x bigger: 4 -> 16
+    const leftEyebrowY = -32 - 24; // 4x bigger: -8-6 -> -32-24
+    const rightEyebrowY = -32 - 24; // 4x bigger: -8-6 -> -32-24
+
+    // Left eyebrow - slopes down toward center
+    const leftEyebrow = this.add.rectangle(16 + eyebrowWidth / 2, leftEyebrowY, eyebrowWidth, eyebrowHeight, 0xff0000); // 4x bigger: 4 -> 16
+    leftEyebrow.setRotation(-0.3); // Rotate to slope down toward center
+
+    // Right eyebrow - slopes down toward center
+    const rightEyebrow = this.add.rectangle(-16 - eyebrowWidth / 2, rightEyebrowY, eyebrowWidth, eyebrowHeight, 0xff0000); // 4x bigger: -4 -> -16
+    rightEyebrow.setRotation(0.3); // Rotate to slope down toward center
+
+    enemy2Shapes.push(leftEyebrow);
+    enemy2Shapes.push(rightEyebrow);
+
+    // Create eyes (4x bigger)
+    const eyeSize = 16; // 4x bigger: 4 -> 16
+    const eyeOffset = 32; // 4x bigger: 8 -> 32
     const leftEye = this.add.circle(-eyeOffset, -eyeOffset, eyeSize, 0xffffff);
     const rightEye = this.add.circle(eyeOffset, -eyeOffset, eyeSize, 0xffffff);
     enemy2Shapes.push(leftEye);
     enemy2Shapes.push(rightEye);
 
-    // Create pupils (always look at player)
-    const pupilSize = 3;
+    // Create pupils (always look at player) (4x bigger)
+    const pupilSize = 12; // 4x bigger: 3 -> 12
     const leftPupil = this.add.circle(-eyeOffset, -eyeOffset, pupilSize, 0x000000);
     const rightPupil = this.add.circle(eyeOffset, -eyeOffset, pupilSize, 0x000000);
     enemy2Shapes.push(leftPupil);
     enemy2Shapes.push(rightPupil);
-
-    // Create red eyebrows (lines above each eye)
-    const eyebrowLength = 6;
-    const eyebrowY = -eyeOffset - 6;
-    const leftEyebrow = this.add.line(-eyeOffset - eyebrowLength / 2, eyebrowY, -eyeOffset + eyebrowLength / 2, eyebrowY, 0xff0000);
-    const rightEyebrow = this.add.line(eyeOffset - eyebrowLength / 2, eyebrowY, eyeOffset + eyebrowLength / 2, eyebrowY, 0xff0000);
-    leftEyebrow.setLineWidth(2);
-    rightEyebrow.setLineWidth(2);
-    enemy2Shapes.push(leftEyebrow);
-    enemy2Shapes.push(rightEyebrow);
 
     // Add all shapes to the container
     this.enemy2.add(enemy2Shapes);
@@ -387,15 +394,15 @@ export class HootGameScene extends Phaser.Scene {
       const dirX = dx / distance;
       const dirY = dy / distance;
 
-      // Calculate pupil offset within the eye (close to perimeter)
-      const eyeRadius = 4; // eyeSize
-      const pupilOffset = 2; // How close to the edge of the eye
-      const maxOffset = eyeRadius - 1; // Leave 1px margin
+      // Calculate pupil offset within the eye (close to perimeter) (4x bigger)
+      const eyeRadius = 16; // 4x bigger: 4 -> 16
+      const pupilOffset = 8; // 4x bigger: 2 -> 8
+      const maxOffset = eyeRadius - 4; // 4x bigger: Leave 4px margin
 
-      // Calculate new pupil positions
-      const leftEyeX = -8; // Left eye position
-      const rightEyeX = 8; // Right eye position
-      const eyeY = -8; // Eye Y position
+      // Calculate new pupil positions (4x bigger)
+      const leftEyeX = -32; // 4x bigger: -8 -> -32
+      const rightEyeX = 32; // 4x bigger: 8 -> 32
+      const eyeY = -32; // 4x bigger: -8 -> -32
 
       // Update left pupil position
       const leftPupilX = leftEyeX + (dirX * pupilOffset);
@@ -470,9 +477,10 @@ export class HootGameScene extends Phaser.Scene {
       }
     }
 
-    // Keep enemy2 within screen bounds
-    this.enemy2.x = Math.max(20, Math.min(this.cameras.main.width - 20, this.enemy2.x));
-    this.enemy2.y = Math.max(20, Math.min(this.cameras.main.height - 20, this.enemy2.y));
+    // Keep enemy2 within screen bounds (accounting for 120x120 size)
+    const enemy2Radius = 60; // Half of 120x120
+    this.enemy2.x = Math.max(enemy2Radius, Math.min(this.cameras.main.width - enemy2Radius, this.enemy2.x));
+    this.enemy2.y = Math.max(enemy2Radius, Math.min(this.cameras.main.height - enemy2Radius, this.enemy2.y));
   }
 
   createEnemies() {
@@ -1171,7 +1179,7 @@ export class HootGameScene extends Phaser.Scene {
         const dx = ball.x - this.enemy2.x;
         const dy = ball.y - this.enemy2.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        const minDistance = ball.radius + 15; // Enemy2 radius is 15 (half of 30x30)
+        const minDistance = ball.radius + 60; // Enemy2 radius is 60 (half of 120x120)
 
         if (distance < minDistance) {
           // Ball hit enemy2 - destroy the enemy2
@@ -1321,16 +1329,28 @@ export class HootGameScene extends Phaser.Scene {
     if (this.pupilUpdateTimer >= this.pupilUpdateInterval) {
       this.pupilUpdateTimer = 0;
 
-      // Find a random enemy to look at
-      const activeEnemies = this.enemies.filter(enemy => enemy && enemy.active);
+      // Create a list of all potential targets (enemies + enemy2)
+      const targets: { x: number, y: number }[] = [];
 
-      if (activeEnemies.length > 0) {
-        // Pick a random enemy
-        const randomEnemy = activeEnemies[Math.floor(Math.random() * activeEnemies.length)];
+      // Add regular enemies
+      this.enemies.forEach(enemy => {
+        if (enemy && enemy.active) {
+          targets.push({ x: enemy.x, y: enemy.y });
+        }
+      });
 
-        // Calculate direction from player to enemy
-        const dx = randomEnemy.x - this.player.x;
-        const dy = randomEnemy.y - this.player.y;
+      // Add enemy2 if it exists and is active
+      if (this.enemy2 && this.enemy2.active) {
+        targets.push({ x: this.enemy2.x, y: this.enemy2.y });
+      }
+
+      if (targets.length > 0) {
+        // Pick a random target
+        const randomTarget = targets[Math.floor(Math.random() * targets.length)];
+
+        // Calculate direction from player to target
+        const dx = randomTarget.x - this.player.x;
+        const dy = randomTarget.y - this.player.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
         if (distance > 0) {
@@ -1361,7 +1381,7 @@ export class HootGameScene extends Phaser.Scene {
           this.rightPupil.y = Math.max(eyeY - maxOffset, Math.min(eyeY + maxOffset, rightPupilY));
         }
       } else {
-        // No enemies - look straight ahead
+        // No targets - look straight ahead
         const leftEyeX = -((this.playerSize / 2) - 3);
         const rightEyeX = (this.playerSize / 2) - 3;
         const eyeY = -((this.playerSize / 2) - 3);
