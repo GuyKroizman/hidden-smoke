@@ -106,15 +106,15 @@ export class HootGameScene extends Phaser.Scene {
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
 
-    // 1. Base Color - Bright pale neutral shade
-    const baseColor = 0xFAFDFF; // Very light blue-white
+    // 1. Base Color - Slightly less bright pale neutral shade
+    const baseColor = 0xF0F3F6; // Slightly darker blue-white
 
     // Fill the entire background with base color
     graphics.fillStyle(baseColor);
     graphics.fillRect(0, 0, width, height);
 
     // 2. Subtle Noise Texture Layer
-    graphics.fillStyle(0xF8FBFF, 0.08); // Slightly lighter with low opacity
+    graphics.fillStyle(0xE8EBEE, 0.08); // Slightly darker with low opacity
 
     // Create sparse, soft noise pattern
     for (let i = 0; i < 200; i++) {
@@ -126,7 +126,7 @@ export class HootGameScene extends Phaser.Scene {
     }
 
     // Add some larger, very soft blotches
-    graphics.fillStyle(0xF5F8FF, 0.05); // Even lighter with very low opacity
+    graphics.fillStyle(0xE5E8EB, 0.05); // Slightly darker with very low opacity
     for (let i = 0; i < 50; i++) {
       const x = Math.random() * width;
       const y = Math.random() * height;
@@ -137,15 +137,15 @@ export class HootGameScene extends Phaser.Scene {
 
     // 3. Gradient Overlay - Very soft radial gradient
     const gradient = this.add.graphics();
-    gradient.fillStyle(0xFFFFFF, 0.03); // Very subtle white overlay
+    gradient.fillStyle(0xE8EBEE, 0.03); // Slightly darker white overlay
     gradient.fillCircle(width / 2, height / 2, Math.max(width, height) * 0.8);
 
     // Add a second, even more subtle gradient
-    gradient.fillStyle(0xF0F4FF, 0.02); // Very light blue tint
+    gradient.fillStyle(0xE0E3E6, 0.02); // Slightly darker blue tint
     gradient.fillCircle(width / 2, height / 2, Math.max(width, height) * 0.6);
 
     // 4. Soft Grid Pattern (optional)
-    graphics.lineStyle(1, 0xF8FBFF, 0.03); // Very light lines
+    graphics.lineStyle(1, 0xE8EBEE, 0.03); // Slightly darker lines
     const gridSpacing = 100;
 
     // Vertical lines
