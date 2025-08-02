@@ -40,6 +40,7 @@ export class HootGameScene extends Phaser.Scene {
     "Don't quit your day job - maybe this isn't for you.",
     "Now I know AI will definitely take over the world. You poor excuse for a human."
   ];
+  private playerSize: number = 15; // Player size (width and height)
 
   constructor(context: HootGameContext) {
     super("hoot-game-scene");
@@ -77,7 +78,7 @@ export class HootGameScene extends Phaser.Scene {
   }
 
   createPlayer() {
-    this.player = this.add.rectangle(this.cameras.main.width / 2, this.cameras.main.height / 2, 10, 10, 0x800080); // Purple rectangle
+    this.player = this.add.rectangle(this.cameras.main.width / 2, this.cameras.main.height / 2, this.playerSize, this.playerSize, 0x800080); // Purple rectangle
   }
 
   createBalls() {
@@ -889,7 +890,7 @@ export class HootGameScene extends Phaser.Scene {
       const dx = ball.x - this.player.x;
       const dy = ball.y - this.player.y;
       const distance = Math.sqrt(dx * dx + dy * dy);
-      const minDistance = ball.radius + 5; // Player radius is 5
+      const minDistance = ball.radius + (this.playerSize / 2); // Player radius is half of player size
 
       if (distance < minDistance) {
         // Reduce player health
