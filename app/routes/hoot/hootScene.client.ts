@@ -12,6 +12,10 @@ export class HootGameScene extends Phaser.Scene {
   private bullets: Phaser.GameObjects.Shape[] = [];
   private enemies: Phaser.GameObjects.Rectangle[] = [];
   private enemyHealths: Map<Phaser.GameObjects.Rectangle, number> = new Map();
+  private enemy2: Phaser.GameObjects.Container | null = null;
+  private enemy2Mode: 'chase' | 'avoid' = 'chase';
+  private enemy2Speed: number = 2;
+  private enemy2AvoidSpeed: number = 4; // Twice as fast when avoiding
   private lastShootTime: number = 0;
   private shootCooldown: number = 500; // 500ms = 0.5 seconds
   private gameOver: boolean = false;
@@ -29,6 +33,7 @@ export class HootGameScene extends Phaser.Scene {
     { enemies: 1, balls: 1 }, // Stage 1
     { enemies: 4, balls: 2 }, // Stage 2
     { enemies: 14, balls: 4 }, // Stage 3 (4 balls size 60)
+    { enemies: 1, balls: 2 }, // Stage 4 (1 smart enemy, 2 big balls)
   ];
   private isTransitioning: boolean = false; // Flag to prevent premature stage completion
   private gameState: 'menu' | 'playing' | 'gameOver' = 'menu'; // Game state management
@@ -61,6 +66,9 @@ export class HootGameScene extends Phaser.Scene {
     this.load.audio('ballHitBall1', '/hoot-sounds/Ball Hit Ball1.wav');
     this.load.audio('ballHitBall2', '/hoot-sounds/Ball Hit Ball2.wav');
     this.load.audio('ballHitBall3', '/hoot-sounds/Ball Hit Ball3.wav');
+
+    // Load background music
+    this.load.audio('backgroundMusic', '/hoot-sounds/music for loop 2.wav');
   }
 
   create() {
@@ -69,6 +77,9 @@ export class HootGameScene extends Phaser.Scene {
       return;
     }
     this.context.scene = this;
+
+    // Create complex background
+    this.createComplexBackground();
 
     // Create border
     this.createBorder();
@@ -89,6 +100,70 @@ export class HootGameScene extends Phaser.Scene {
     graphics.strokeRect(10, 10, this.cameras.main.width - 20, this.cameras.main.height - 20);
   }
 
+  createComplexBackground() {
+    const graphics = this.add.graphics();
+    const width = this.cameras.main.width;
+    const height = this.cameras.main.height;
+
+    // 1. Base Color - Bright pale neutral shade
+    const baseColor = 0xFAFDFF; // Very light blue-white
+
+    // Fill the entire background with base color
+    graphics.fillStyle(baseColor);
+    graphics.fillRect(0, 0, width, height);
+
+    // 2. Subtle Noise Texture Layer
+    graphics.fillStyle(0xF8FBFF, 0.08); // Slightly lighter with low opacity
+
+    // Create sparse, soft noise pattern
+    for (let i = 0; i < 200; i++) {
+      const x = Math.random() * width;
+      const y = Math.random() * height;
+      const size = 2 + Math.random() * 4; // 2-6px dots
+
+      graphics.fillCircle(x, y, size);
+    }
+
+    // Add some larger, very soft blotches
+    graphics.fillStyle(0xF5F8FF, 0.05); // Even lighter with very low opacity
+    for (let i = 0; i < 50; i++) {
+      const x = Math.random() * width;
+      const y = Math.random() * height;
+      const size = 8 + Math.random() * 15; // 8-23px blotches
+
+      graphics.fillCircle(x, y, size);
+    }
+
+    // 3. Gradient Overlay - Very soft radial gradient
+    const gradient = this.add.graphics();
+    gradient.fillStyle(0xFFFFFF, 0.03); // Very subtle white overlay
+    gradient.fillCircle(width / 2, height / 2, Math.max(width, height) * 0.8);
+
+    // Add a second, even more subtle gradient
+    gradient.fillStyle(0xF0F4FF, 0.02); // Very light blue tint
+    gradient.fillCircle(width / 2, height / 2, Math.max(width, height) * 0.6);
+
+    // 4. Soft Grid Pattern (optional)
+    graphics.lineStyle(1, 0xF8FBFF, 0.03); // Very light lines
+    const gridSpacing = 100;
+
+    // Vertical lines
+    for (let x = 0; x <= width; x += gridSpacing) {
+      graphics.beginPath();
+      graphics.moveTo(x, 0);
+      graphics.lineTo(x, height);
+      graphics.strokePath();
+    }
+
+    // Horizontal lines
+    for (let y = 0; y <= height; y += gridSpacing) {
+      graphics.beginPath();
+      graphics.moveTo(0, y);
+      graphics.lineTo(width, y);
+      graphics.strokePath();
+    }
+  }
+
   createPlayer() {
     // Create a container for the complex player object
     this.player = this.add.container(this.cameras.main.width / 2, this.cameras.main.height / 2);
@@ -102,24 +177,24 @@ export class HootGameScene extends Phaser.Scene {
 
     const eyeSize = 5;
     const cornerOffset = (this.playerSize / 2) - 3;
-    const leftEye = this.add.circle(-cornerOffset, -cornerOffset, eyeSize, 0xffffff);
-    const rightEye = this.add.circle(cornerOffset, -cornerOffset, eyeSize, 0xffffff);
+    const leftEye = this.add.circle(-cornerOffset, -cornerOffset, eyeSize, 0xffff00);
+    const rightEye = this.add.circle(cornerOffset, -cornerOffset, eyeSize, 0xffff00);
     playerShapes.push(leftEye);
     playerShapes.push(rightEye);
 
     const pupilSize = 1;
     const leftPupil = this.add.circle(-cornerOffset, -cornerOffset, pupilSize, 0x000000);
     const rightPupil = this.add.circle(cornerOffset, -cornerOffset, pupilSize, 0x000000);
-    
+
     // Store references to pupils for updating their positions
     this.leftPupil = leftPupil;
     this.rightPupil = rightPupil;
-    
+
     playerShapes.push(leftPupil);
     playerShapes.push(rightPupil);
 
     this.player.add(playerShapes);
-    
+
     // Initialize pupil direction
     this.updatePupilDirection();
   }
@@ -139,6 +214,11 @@ export class HootGameScene extends Phaser.Scene {
       // Stage 3 has all balls the same size
       if (this.currentStage === 3) {
         ballRadius = 60; // All 4 balls are size 60
+      }
+
+      // Stage 4 has 2 big slow balls
+      if (this.currentStage === 4) {
+        ballRadius = 80; // Big balls for stage 4
       }
 
       // Position balls around the player for stage 3
@@ -168,6 +248,18 @@ export class HootGameScene extends Phaser.Scene {
           default:
             ballX = playerX;
             ballY = playerY;
+        }
+      } else if (this.currentStage === 4) {
+        // For stage 4, position balls 100 pixels to each side of player
+        const playerX = this.cameras.main.width / 2;
+        const playerY = this.cameras.main.height / 2;
+
+        if (i === 0) {
+          ballX = playerX - 100; // Left side
+          ballY = playerY;
+        } else {
+          ballX = playerX + 100; // Right side
+          ballY = playerY;
         }
       } else {
         // For other stages, use random positioning
@@ -208,6 +300,18 @@ export class HootGameScene extends Phaser.Scene {
             velocityX = (Math.random() - 0.5) * 4;
             velocityY = (Math.random() - 0.5) * 4;
         }
+      } else if (this.currentStage === 4) {
+        // Stage 4 has slow big balls with specific initial directions
+        const slowSpeed = 0.5; // Very slow speed for big balls
+        if (i === 0) {
+          // Left ball moves left
+          velocityX = -slowSpeed;
+          velocityY = 0;
+        } else {
+          // Right ball moves right
+          velocityX = slowSpeed;
+          velocityY = 0;
+        }
       } else {
         // Random velocity for other stages
         velocityX = (Math.random() - 0.5) * 4;
@@ -223,6 +327,153 @@ export class HootGameScene extends Phaser.Scene {
     }
   }
 
+  createEnemy2() {
+    // Create enemy2 container
+    this.enemy2 = this.add.container(100, 100); // Start near top left corner
+
+    // Array to hold all enemy2 shapes
+    const enemy2Shapes: Phaser.GameObjects.Shape[] = [];
+
+    // Create the main green rectangle body (30x30)
+    const body = this.add.rectangle(0, 0, 30, 30, 0x00ff00); // Green rectangle
+    enemy2Shapes.push(body);
+
+    // Create eyes
+    const eyeSize = 4;
+    const eyeOffset = 8;
+    const leftEye = this.add.circle(-eyeOffset, -eyeOffset, eyeSize, 0xffffff);
+    const rightEye = this.add.circle(eyeOffset, -eyeOffset, eyeSize, 0xffffff);
+    enemy2Shapes.push(leftEye);
+    enemy2Shapes.push(rightEye);
+
+    // Create pupils (always look at player)
+    const pupilSize = 1;
+    const leftPupil = this.add.circle(-eyeOffset, -eyeOffset, pupilSize, 0x000000);
+    const rightPupil = this.add.circle(eyeOffset, -eyeOffset, pupilSize, 0x000000);
+    enemy2Shapes.push(leftPupil);
+    enemy2Shapes.push(rightPupil);
+
+    // Create red eyebrows (lines above each eye)
+    const eyebrowLength = 6;
+    const eyebrowY = -eyeOffset - 6;
+    const leftEyebrow = this.add.line(-eyeOffset - eyebrowLength / 2, eyebrowY, -eyeOffset + eyebrowLength / 2, eyebrowY, 0xff0000);
+    const rightEyebrow = this.add.line(eyeOffset - eyebrowLength / 2, eyebrowY, eyeOffset + eyebrowLength / 2, eyebrowY, 0xff0000);
+    leftEyebrow.setLineWidth(2);
+    rightEyebrow.setLineWidth(2);
+    enemy2Shapes.push(leftEyebrow);
+    enemy2Shapes.push(rightEyebrow);
+
+    // Add all shapes to the container
+    this.enemy2.add(enemy2Shapes);
+
+    // Store references to pupils for updating their positions
+    (this.enemy2 as any).leftPupil = leftPupil;
+    (this.enemy2 as any).rightPupil = rightPupil;
+    (this.enemy2 as any).leftEye = leftEye;
+    (this.enemy2 as any).rightEye = rightEye;
+  }
+
+  updateEnemy2Pupils() {
+    if (!this.enemy2 || !this.player) return;
+
+    // Calculate direction from enemy2 to player
+    const dx = this.player.x - this.enemy2.x;
+    const dy = this.player.y - this.enemy2.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance > 0) {
+      // Normalize direction
+      const dirX = dx / distance;
+      const dirY = dy / distance;
+
+      // Calculate pupil offset within the eye (close to perimeter)
+      const eyeRadius = 4; // eyeSize
+      const pupilOffset = 2; // How close to the edge of the eye
+      const maxOffset = eyeRadius - 1; // Leave 1px margin
+
+      // Calculate new pupil positions
+      const leftEyeX = -8; // Left eye position
+      const rightEyeX = 8; // Right eye position
+      const eyeY = -8; // Eye Y position
+
+      // Update left pupil position
+      const leftPupilX = leftEyeX + (dirX * pupilOffset);
+      const leftPupilY = eyeY + (dirY * pupilOffset);
+      (this.enemy2 as any).leftPupil.x = Math.max(leftEyeX - maxOffset, Math.min(leftEyeX + maxOffset, leftPupilX));
+      (this.enemy2 as any).leftPupil.y = Math.max(eyeY - maxOffset, Math.min(eyeY + maxOffset, leftPupilY));
+
+      // Update right pupil position
+      const rightPupilX = rightEyeX + (dirX * pupilOffset);
+      const rightPupilY = eyeY + (dirY * pupilOffset);
+      (this.enemy2 as any).rightPupil.x = Math.max(rightEyeX - maxOffset, Math.min(rightEyeX + maxOffset, rightPupilX));
+      (this.enemy2 as any).rightPupil.y = Math.max(eyeY - maxOffset, Math.min(eyeY + maxOffset, rightPupilY));
+    }
+  }
+
+  updateEnemy2() {
+    if (!this.enemy2 || !this.player || this.currentStage !== 4) return;
+
+    // Check if any ball is closer to enemy2 than the player
+    let closestBallDistance = Infinity;
+    let closestBall: any = null;
+
+    this.context.balls.forEach((ball: any) => {
+      if (!ball || !ball.active) return;
+
+      const dx = ball.x - this.enemy2.x;
+      const dy = ball.y - this.enemy2.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance < closestBallDistance) {
+        closestBallDistance = distance;
+        closestBall = ball;
+      }
+    });
+
+    // Calculate distance to player
+    const dxToPlayer = this.player.x - this.enemy2.x;
+    const dyToPlayer = this.player.y - this.enemy2.y;
+    const distanceToPlayer = Math.sqrt(dxToPlayer * dxToPlayer + dyToPlayer * dyToPlayer);
+
+    // Determine mode based on closest ball vs player distance
+    if (closestBall && closestBallDistance < distanceToPlayer) {
+      this.enemy2Mode = 'avoid';
+    } else {
+      this.enemy2Mode = 'chase';
+    }
+
+    // Move enemy2 based on current mode
+    if (this.enemy2Mode === 'chase') {
+      // Chase mode: move toward player
+      if (distanceToPlayer > 0) {
+        const moveSpeed = this.enemy2Speed;
+        const moveX = (dxToPlayer / distanceToPlayer) * moveSpeed;
+        const moveY = (dyToPlayer / distanceToPlayer) * moveSpeed;
+        this.enemy2.x += moveX;
+        this.enemy2.y += moveY;
+      }
+    } else {
+      // Avoid mode: move away from closest ball
+      if (closestBall) {
+        const dxFromBall = this.enemy2.x - closestBall.x;
+        const dyFromBall = this.enemy2.y - closestBall.y;
+        const distanceFromBall = Math.sqrt(dxFromBall * dxFromBall + dyFromBall * dyFromBall);
+
+        if (distanceFromBall > 0) {
+          const moveSpeed = this.enemy2AvoidSpeed;
+          const moveX = (dxFromBall / distanceFromBall) * moveSpeed;
+          const moveY = (dyFromBall / distanceFromBall) * moveSpeed;
+          this.enemy2.x += moveX;
+          this.enemy2.y += moveY;
+        }
+      }
+    }
+
+    // Keep enemy2 within screen bounds
+    this.enemy2.x = Math.max(20, Math.min(this.cameras.main.width - 20, this.enemy2.x));
+    this.enemy2.y = Math.max(20, Math.min(this.cameras.main.height - 20, this.enemy2.y));
+  }
+
   createEnemies() {
     const currentConfig = this.stageConfigs[this.currentStage - 1];
     const enemyCount = currentConfig.enemies;
@@ -231,6 +482,12 @@ export class HootGameScene extends Phaser.Scene {
     this.enemies.forEach(enemy => enemy.destroy());
     this.enemies = [];
     this.enemyHealths.clear();
+
+    // Clear enemy2 for stage 4
+    if (this.enemy2) {
+      this.enemy2.destroy();
+      this.enemy2 = null;
+    }
 
     // Create enemies based on stage configuration
     const screenWidth = this.cameras.main.width;
@@ -292,16 +549,21 @@ export class HootGameScene extends Phaser.Scene {
         }
       }
 
-      const enemy = this.add.rectangle(pos.x, pos.y, 20, 20, 0x00ff00); // Green rectangle
-      this.enemies.push(enemy);
-      this.enemyHealths.set(enemy, 100);
+      if (this.currentStage === 4) {
+        // Stage 4 uses enemy2 instead of regular enemies
+        this.createEnemy2();
+      } else {
+        const enemy = this.add.rectangle(pos.x, pos.y, 20, 20, 0x00ff00); // Green rectangle
+        this.enemies.push(enemy);
+        this.enemyHealths.set(enemy, 100);
+      }
     }
   }
 
   createUI() {
     this.healthText = this.add.text(20, 20, `Health: ${this.playerHealth}`, {
-      fontSize: '24px',
-      color: '#ffffff'
+      fontSize: '32px',
+      color: '#1a365d'
     });
     this.healthText.setVisible(false);
 
@@ -327,7 +589,7 @@ export class HootGameScene extends Phaser.Scene {
 
     this.stageTimeText = this.add.text(this.cameras.main.width / 2, this.cameras.main.height / 2 + 20, '', {
       fontSize: '24px',
-      color: '#ffff00'
+      color: '#1a365d'
     });
     this.stageTimeText.setOrigin(0.5);
     this.stageTimeText.setVisible(false);
@@ -341,14 +603,14 @@ export class HootGameScene extends Phaser.Scene {
 
     this.menuSubtitle = this.add.text(this.cameras.main.width / 2, this.cameras.main.height / 2, 'Press SPACE to start', {
       fontSize: '24px',
-      color: '#ffff00'
+      color: '#1a365d'
     });
     this.menuSubtitle.setOrigin(0.5);
 
     // Create freeze countdown text
     this.freezeCountdownText = this.add.text(this.cameras.main.width / 2, this.cameras.main.height / 2, '3', {
       fontSize: '72px',
-      color: '#ffff00'
+      color: '#1a365d'
     });
     this.freezeCountdownText.setOrigin(0.5);
     this.freezeCountdownText.setVisible(false);
@@ -411,7 +673,7 @@ export class HootGameScene extends Phaser.Scene {
     this.sound.play('shoot');
 
     // Create bullet at player position
-    const bullet = this.add.circle(this.player.x, this.player.y, 2, 0xffff00); // Yellow circle
+    const bullet = this.add.circle(this.player.x, this.player.y, 2, 0x000000); // Black circle
 
     // Calculate direction based on player direction
     let angle = 0;
@@ -452,12 +714,14 @@ export class HootGameScene extends Phaser.Scene {
     this.updateBalls();
     this.updateBullets();
     this.updateEnemies(); // New method for enemy advancement
+    this.updateEnemy2(); // Update enemy2 behavior
     this.checkBallCollisions();
     this.checkBulletCollisions();
     this.checkPlayerCollisions();
     this.checkEnemyProximity(); // New method for explosion mechanic
     this.checkStageCompletion(); // New method for stage progression
     this.updatePupilDirection(); // Update pupil direction
+    this.updateEnemy2Pupils(); // Update enemy2 pupils
     this.updateUI();
   }
 
@@ -570,10 +834,17 @@ export class HootGameScene extends Phaser.Scene {
     if (this.isTransitioning) return;
 
     // Check if all enemies are destroyed
-    if (this.enemies.length === 0) {
-      // Show congratulations message
-      this.congratulationsText.setVisible(true);
+    let stageComplete = false;
 
+    if (this.currentStage === 4) {
+      // Stage 4: check if enemy2 is destroyed
+      stageComplete = !this.enemy2 || !this.enemy2.active;
+    } else {
+      // Other stages: check if all enemies are destroyed
+      stageComplete = this.enemies.length === 0;
+    }
+
+    if (stageComplete) {
       // Set transitioning flag to prevent multiple calls
       this.isTransitioning = true;
 
@@ -594,6 +865,9 @@ export class HootGameScene extends Phaser.Scene {
     this.gameOverText.setFontSize('48px'); // Reset to original size
     this.congratulationsText.setVisible(false);
     this.stageTimeText.setVisible(false);
+
+    // Stop background music when returning to menu
+    this.sound.stopAll();
   }
 
   startGame() {
@@ -619,6 +893,10 @@ export class HootGameScene extends Phaser.Scene {
     this.enemies.forEach(enemy => enemy.destroy());
     this.enemies = [];
     this.enemyHealths.clear();
+    if (this.enemy2) {
+      this.enemy2.destroy();
+      this.enemy2 = null;
+    }
     this.context.balls.forEach(ball => ball.destroy());
     this.context.balls = [];
 
@@ -632,6 +910,9 @@ export class HootGameScene extends Phaser.Scene {
 
     // Start tracking stage time
     this.stageStartTime = this.time.now;
+
+    // Start background music
+    this.sound.play('backgroundMusic', { loop: true, volume: 0.8 });
   }
 
   nextStage() {
@@ -654,6 +935,9 @@ export class HootGameScene extends Phaser.Scene {
           completionMessage = 'Level completed. But I\'m pretty sure you will die in the next level.';
           break;
         case 3:
+          completionMessage = 'Level completed. But I\'m pretty sure you will die in the next level.';
+          break;
+        case 4:
           completionMessage = '"Congratulation" you made it to the end :)';
           break;
       }
@@ -924,7 +1208,7 @@ export class HootGameScene extends Phaser.Scene {
 
             // Reduce enemy health
             const currentHealth = this.enemyHealths.get(enemy) || 0;
-            const newHealth = currentHealth - 10;
+            const newHealth = currentHealth - 19;
 
             if (newHealth <= 0) {
               // Play enemy die sound
@@ -969,7 +1253,21 @@ export class HootGameScene extends Phaser.Scene {
         // Check for game over
         if (this.playerHealth <= 0) {
           this.gameOver = true;
+          this.gameState = 'gameOver';
+
+          // Make game over text bigger
+          this.gameOverText.setFontSize('96px');
           this.gameOverText.setVisible(true);
+
+          // Show random death message
+          const randomDeathMessage = this.deathMessages[Math.floor(Math.random() * this.deathMessages.length)];
+          this.stageTimeText.setText(randomDeathMessage);
+          this.stageTimeText.setVisible(true);
+
+          // Return to menu after 3 seconds
+          this.time.delayedCall(3000, () => {
+            this.showMenu();
+          });
         }
       }
     });
@@ -997,37 +1295,37 @@ export class HootGameScene extends Phaser.Scene {
 
       // Find a random enemy to look at
       const activeEnemies = this.enemies.filter(enemy => enemy && enemy.active);
-      
+
       if (activeEnemies.length > 0) {
         // Pick a random enemy
         const randomEnemy = activeEnemies[Math.floor(Math.random() * activeEnemies.length)];
-        
+
         // Calculate direction from player to enemy
         const dx = randomEnemy.x - this.player.x;
         const dy = randomEnemy.y - this.player.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        
+
         if (distance > 0) {
           // Normalize direction
           const dirX = dx / distance;
           const dirY = dy / distance;
-          
+
           // Calculate pupil offset within the eye (close to perimeter)
           const eyeRadius = 5; // eyeSize
           const pupilOffset = 3; // How close to the edge of the eye
           const maxOffset = eyeRadius - 1; // Leave 1px margin
-          
+
           // Calculate new pupil positions
           const leftEyeX = -((this.playerSize / 2) - 3); // Left eye position
           const rightEyeX = (this.playerSize / 2) - 3;   // Right eye position
           const eyeY = -((this.playerSize / 2) - 3);     // Eye Y position
-          
+
           // Update left pupil position
           const leftPupilX = leftEyeX + (dirX * pupilOffset);
           const leftPupilY = eyeY + (dirY * pupilOffset);
           this.leftPupil.x = Math.max(leftEyeX - maxOffset, Math.min(leftEyeX + maxOffset, leftPupilX));
           this.leftPupil.y = Math.max(eyeY - maxOffset, Math.min(eyeY + maxOffset, leftPupilY));
-          
+
           // Update right pupil position
           const rightPupilX = rightEyeX + (dirX * pupilOffset);
           const rightPupilY = eyeY + (dirY * pupilOffset);
@@ -1039,7 +1337,7 @@ export class HootGameScene extends Phaser.Scene {
         const leftEyeX = -((this.playerSize / 2) - 3);
         const rightEyeX = (this.playerSize / 2) - 3;
         const eyeY = -((this.playerSize / 2) - 3);
-        
+
         this.leftPupil.x = leftEyeX;
         this.leftPupil.y = eyeY;
         this.rightPupil.x = rightEyeX;
