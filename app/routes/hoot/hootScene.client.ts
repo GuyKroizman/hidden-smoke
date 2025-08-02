@@ -50,7 +50,7 @@ export class HootGameScene extends Phaser.Scene {
     "Now I know AI will definitely take over the world. You poor excuse for a human."
   ];
   private playerSize: number = 15; // Player size (width and height)
-  private debugLevel: number = 0; // 0 = normal game, 1-4 = start at specific level
+  private debugLevel: number = 4; // 0 = normal game, 1-4 = start at specific level
 
   constructor(context: HootGameContext) {
     super("hoot-game-scene");
@@ -99,6 +99,50 @@ export class HootGameScene extends Phaser.Scene {
     const graphics = this.add.graphics();
     graphics.lineStyle(4, 0xffffff);
     graphics.strokeRect(10, 10, this.cameras.main.width - 20, this.cameras.main.height - 20);
+  }
+
+  createDottedBorder() {
+    // Create dotted rectangle border for balls only on level 4 (130px smaller than screen)
+    const borderOffset = 130; // 130px total smaller = 65px on each side
+    const dottedBorder = this.add.graphics();
+    dottedBorder.lineStyle(2, 0x00ff00, 0.7);
+
+    // Create dotted line effect
+    const dashLength = 10;
+    const gapLength = 5;
+    const totalDash = dashLength + gapLength;
+
+    // Top border
+    for (let x = borderOffset; x < this.cameras.main.width - borderOffset; x += totalDash) {
+      dottedBorder.beginPath();
+      dottedBorder.moveTo(x, borderOffset);
+      dottedBorder.lineTo(Math.min(x + dashLength, this.cameras.main.width - borderOffset), borderOffset);
+      dottedBorder.strokePath();
+    }
+
+    // Bottom border
+    for (let x = borderOffset; x < this.cameras.main.width - borderOffset; x += totalDash) {
+      dottedBorder.beginPath();
+      dottedBorder.moveTo(x, this.cameras.main.height - borderOffset);
+      dottedBorder.lineTo(Math.min(x + dashLength, this.cameras.main.width - borderOffset), this.cameras.main.height - borderOffset);
+      dottedBorder.strokePath();
+    }
+
+    // Left border
+    for (let y = borderOffset; y < this.cameras.main.height - borderOffset; y += totalDash) {
+      dottedBorder.beginPath();
+      dottedBorder.moveTo(borderOffset, y);
+      dottedBorder.lineTo(borderOffset, Math.min(y + dashLength, this.cameras.main.height - borderOffset));
+      dottedBorder.strokePath();
+    }
+
+    // Right border
+    for (let y = borderOffset; y < this.cameras.main.height - borderOffset; y += totalDash) {
+      dottedBorder.beginPath();
+      dottedBorder.moveTo(this.cameras.main.width - borderOffset, y);
+      dottedBorder.lineTo(this.cameras.main.width - borderOffset, Math.min(y + dashLength, this.cameras.main.height - borderOffset));
+      dottedBorder.strokePath();
+    }
   }
 
   createComplexBackground() {
@@ -932,16 +976,16 @@ export class HootGameScene extends Phaser.Scene {
         if (this.currentStage === 4) {
           // Stage 4 is the final stage - show congratulations and return to menu
           const stageTime = Math.round((this.time.now - this.stageStartTime) / 1000);
-          
+
           this.congratulationsText.setText('"Congratulation" you made it to the end :)');
           this.congratulationsText.setVisible(true);
-          
+
           this.stageTimeText.setText(`And it took you just ${stageTime} seconds.`);
           this.stageTimeText.setVisible(true);
-          
+
           this.gameOver = true;
           this.gameState = 'gameOver';
-          
+
           // Return to menu after 3 seconds
           this.time.delayedCall(3000, () => {
             this.showMenu();
@@ -1005,6 +1049,11 @@ export class HootGameScene extends Phaser.Scene {
     this.createPlayer();
     this.createBalls();
     this.createEnemies();
+
+    // Create dotted border for level 4
+    if (this.currentStage === 4) {
+      this.createDottedBorder();
+    }
 
     // Reset transitioning flag
     this.isTransitioning = false;
@@ -1078,6 +1127,11 @@ export class HootGameScene extends Phaser.Scene {
         this.createBalls();
         this.createEnemies();
 
+        // Create dotted border for level 4
+        if (this.currentStage === 4) {
+          this.createDottedBorder();
+        }
+
         // Reset transitioning flag after creating new content
         this.isTransitioning = false;
 
@@ -1140,26 +1194,52 @@ export class HootGameScene extends Phaser.Scene {
       ball.x += ball.velocityX;
       ball.y += ball.velocityY;
 
-      // Bounce off walls
-      if (ball.x - ball.radius < 20) {
-        ball.x = 20 + ball.radius;
-        ball.velocityX *= -0.8;
-        this.sound.play('ballHitWall');
-      }
-      if (ball.x + ball.radius > this.cameras.main.width - 20) {
-        ball.x = this.cameras.main.width - 20 - ball.radius;
-        ball.velocityX *= -0.8;
-        this.sound.play('ballHitWall');
-      }
-      if (ball.y - ball.radius < 20) {
-        ball.y = 20 + ball.radius;
-        ball.velocityY *= -0.8;
-        this.sound.play('ballHitWall');
-      }
-      if (ball.y + ball.radius > this.cameras.main.height - 20) {
-        ball.y = this.cameras.main.height - 20 - ball.radius;
-        ball.velocityY *= -0.8;
-        this.sound.play('ballHitWall');
+      if (this.currentStage === 4) {
+        // Level 4: Bounce off dotted border (130px smaller than screen)
+        const borderOffset = 130;
+
+        if (ball.x - ball.radius < borderOffset) {
+          ball.x = borderOffset + ball.radius;
+          ball.velocityX *= -0.8;
+          this.sound.play('ballHitWall');
+        }
+        if (ball.x + ball.radius > this.cameras.main.width - borderOffset) {
+          ball.x = this.cameras.main.width - borderOffset - ball.radius;
+          ball.velocityX *= -0.8;
+          this.sound.play('ballHitWall');
+        }
+        if (ball.y - ball.radius < borderOffset) {
+          ball.y = borderOffset + ball.radius;
+          ball.velocityY *= -0.8;
+          this.sound.play('ballHitWall');
+        }
+        if (ball.y + ball.radius > this.cameras.main.height - borderOffset) {
+          ball.y = this.cameras.main.height - borderOffset - ball.radius;
+          ball.velocityY *= -0.8;
+          this.sound.play('ballHitWall');
+        }
+      } else {
+        // Other levels: Bounce off regular walls
+        if (ball.x - ball.radius < 20) {
+          ball.x = 20 + ball.radius;
+          ball.velocityX *= -0.8;
+          this.sound.play('ballHitWall');
+        }
+        if (ball.x + ball.radius > this.cameras.main.width - 20) {
+          ball.x = this.cameras.main.width - 20 - ball.radius;
+          ball.velocityX *= -0.8;
+          this.sound.play('ballHitWall');
+        }
+        if (ball.y - ball.radius < 20) {
+          ball.y = 20 + ball.radius;
+          ball.velocityY *= -0.8;
+          this.sound.play('ballHitWall');
+        }
+        if (ball.y + ball.radius > this.cameras.main.height - 20) {
+          ball.y = this.cameras.main.height - 20 - ball.radius;
+          ball.velocityY *= -0.8;
+          this.sound.play('ballHitWall');
+        }
       }
     });
   }
