@@ -103,8 +103,9 @@ export class HootGameScene extends Phaser.Scene {
     playerShapes.push(leftEye);
     playerShapes.push(rightEye);
 
-    const leftPupil = this.add.circle(-cornerOffset, -cornerOffset, 1, 0x000000);
-    const rightPupil = this.add.circle(cornerOffset, -cornerOffset, 1, 0x000000);
+    const pupilSize = 1;
+    const leftPupil = this.add.circle(-cornerOffset, -cornerOffset, pupilSize, 0x000000);
+    const rightPupil = this.add.circle(cornerOffset, -cornerOffset, pupilSize, 0x000000);
     playerShapes.push(leftPupil);
     playerShapes.push(rightPupil);
 
