@@ -33,6 +33,13 @@ export class HootGameScene extends Phaser.Scene {
   private isStageFrozen: boolean = false; // Freeze state for stage transitions
   private freezeCountdownText!: Phaser.GameObjects.Text;
   private freezeTimer: number = 0; // Timer for freeze countdown
+  private stageStartTime: number = 0; // Track when stage started
+  private stageTimeText!: Phaser.GameObjects.Text;
+  private deathMessages = [
+    "I guess your school teachers were right - you are a failure.",
+    "Don't quit your day job - maybe this isn't for you.",
+    "Now I know AI will definitely take over the world. You poor excuse for a human."
+  ];
 
   constructor(context: HootGameContext) {
     super("hoot-game-scene");
@@ -274,6 +281,13 @@ export class HootGameScene extends Phaser.Scene {
     this.congratulationsText.setOrigin(0.5);
     this.congratulationsText.setVisible(false);
 
+    this.stageTimeText = this.add.text(this.cameras.main.width / 2, this.cameras.main.height / 2 + 20, '', {
+      fontSize: '24px',
+      color: '#ffff00'
+    });
+    this.stageTimeText.setOrigin(0.5);
+    this.stageTimeText.setVisible(false);
+
     // Create menu UI
     this.menuTitle = this.add.text(this.cameras.main.width / 2, this.cameras.main.height / 2 - 100, 'LOOPLESS GAME', {
       fontSize: '48px',
@@ -370,7 +384,7 @@ export class HootGameScene extends Phaser.Scene {
     }
 
     // Fast bullet velocity
-    const bulletSpeed = 15;
+    const bulletSpeed = 20;
     (bullet as any).velocityX = Math.cos(angle) * bulletSpeed;
     (bullet as any).velocityY = Math.sin(angle) * bulletSpeed;
     (bullet as any).radius = 2;
@@ -485,7 +499,15 @@ export class HootGameScene extends Phaser.Scene {
     if (this.playerHealth <= 0) {
       this.gameOver = true;
       this.gameState = 'gameOver';
+
+      // Make game over text bigger
+      this.gameOverText.setFontSize('96px');
       this.gameOverText.setVisible(true);
+
+      // Show random death message
+      const randomDeathMessage = this.deathMessages[Math.floor(Math.random() * this.deathMessages.length)];
+      this.stageTimeText.setText(randomDeathMessage);
+      this.stageTimeText.setVisible(true);
 
       // Return to menu after 3 seconds
       this.time.delayedCall(3000, () => {
@@ -520,7 +542,9 @@ export class HootGameScene extends Phaser.Scene {
     this.healthText.setVisible(false);
     this.stageText.setVisible(false);
     this.gameOverText.setVisible(false);
+    this.gameOverText.setFontSize('48px'); // Reset to original size
     this.congratulationsText.setVisible(false);
+    this.stageTimeText.setVisible(false);
   }
 
   startGame() {
@@ -556,40 +580,83 @@ export class HootGameScene extends Phaser.Scene {
 
     // Reset transitioning flag
     this.isTransitioning = false;
+
+    // Start tracking stage time
+    this.stageStartTime = this.time.now;
   }
 
   nextStage() {
+    // Calculate stage completion time
+    const stageTime = Math.round((this.time.now - this.stageStartTime) / 1000);
+
     // Hide congratulations text
     this.congratulationsText.setVisible(false);
+    this.stageTimeText.setVisible(false);
 
     // Check if there are more stages
     if (this.currentStage < this.stageConfigs.length) {
-      this.currentStage++;
-
-      // Update stage text
-      this.stageText.setText(`Stage: ${this.currentStage}`);
-
-      // Reset player position to center of screen
-      if (this.player) {
-        this.player.x = this.cameras.main.width / 2;
-        this.player.y = this.cameras.main.height / 2;
+      // Show stage-specific completion message
+      let completionMessage = '';
+      switch (this.currentStage) {
+        case 1:
+          completionMessage = 'That was easy.';
+          break;
+        case 2:
+          completionMessage = 'Level completed. But I\'m pretty sure you will die in the next level.';
+          break;
+        case 3:
+          completionMessage = '"Congratulation" you made it to the end :)';
+          break;
       }
 
-      // Create new stage content
-      this.createBalls();
-      this.createEnemies();
+      this.congratulationsText.setText(completionMessage);
+      this.congratulationsText.setVisible(true);
 
-      // Reset transitioning flag after creating new content
-      this.isTransitioning = false;
+      // Show time taken
+      this.stageTimeText.setText(`And it took you just ${stageTime} seconds.`);
+      this.stageTimeText.setVisible(true);
 
-      // Start freeze period for stages 2 and 3
-      if (this.currentStage > 1) {
-        this.startFreezePeriod();
-      }
+      // Wait 3 seconds then continue to next stage
+      this.time.delayedCall(3000, () => {
+        // Hide completion messages
+        this.congratulationsText.setVisible(false);
+        this.stageTimeText.setVisible(false);
+
+        this.currentStage++;
+
+        // Update stage text
+        this.stageText.setText(`Stage: ${this.currentStage}`);
+
+        // Reset player position to center of screen
+        if (this.player) {
+          this.player.x = this.cameras.main.width / 2;
+          this.player.y = this.cameras.main.height / 2;
+        }
+
+        // Create new stage content
+        this.createBalls();
+        this.createEnemies();
+
+        // Reset transitioning flag after creating new content
+        this.isTransitioning = false;
+
+        // Start tracking time for new stage
+        this.stageStartTime = this.time.now;
+
+        // Start freeze period for stages 2 and 3
+        if (this.currentStage > 1) {
+          this.startFreezePeriod();
+        }
+      });
     } else {
       // Game completed - show final congratulations
-      this.congratulationsText.setText('GAME COMPLETED!');
+      this.congratulationsText.setText('"Congratulation" you made it to the end :)');
       this.congratulationsText.setVisible(true);
+
+      // Show final time
+      this.stageTimeText.setText(`And it took you just ${stageTime} seconds.`);
+      this.stageTimeText.setVisible(true);
+
       this.gameOver = true;
       this.gameState = 'gameOver';
 
@@ -767,7 +834,6 @@ export class HootGameScene extends Phaser.Scene {
 
         if (distance < minDistance) {
           // Transfer bullet energy to ball
-          const bulletSpeed = Math.sqrt((bullet as any).velocityX ** 2 + (bullet as any).velocityY ** 2);
           const transferFactor = 0.5;
 
           ball.velocityX += (bullet as any).velocityX * transferFactor;
