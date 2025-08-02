@@ -576,9 +576,9 @@ export class HootGameScene extends Phaser.Scene {
     });
     this.healthText.setVisible(false);
 
-    this.stageText = this.add.text(20, 50, `Stage: ${this.currentStage}`, {
+    this.stageText = this.add.text(80, 60, `Stage: ${this.currentStage}`, {
       fontSize: '24px',
-      color: '#ffffff'
+      color: '#0055ff'
     });
     this.stageText.setVisible(false);
 
