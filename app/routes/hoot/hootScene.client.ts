@@ -27,6 +27,12 @@ export class HootGameScene extends Phaser.Scene {
     { enemies: 14, balls: 4 }, // Stage 3 (4 balls size 60)
   ];
   private isTransitioning: boolean = false; // Flag to prevent premature stage completion
+  private gameState: 'menu' | 'playing' | 'gameOver' = 'menu'; // Game state management
+  private menuTitle!: Phaser.GameObjects.Text;
+  private menuSubtitle!: Phaser.GameObjects.Text;
+  private isStageFrozen: boolean = false; // Freeze state for stage transitions
+  private freezeCountdownText!: Phaser.GameObjects.Text;
+  private freezeTimer: number = 0; // Timer for freeze countdown
 
   constructor(context: HootGameContext) {
     super("hoot-game-scene");
@@ -47,20 +53,14 @@ export class HootGameScene extends Phaser.Scene {
     // Create border
     this.createBorder();
 
-    // Create player
-    this.createPlayer();
-
-    // Create balls
-    this.createBalls();
-
-    // Create enemies
-    this.createEnemies();
-
     // Create UI
     this.createUI();
 
     // Setup input
     this.setupInput();
+
+    // Show menu initially
+    this.showMenu();
   }
 
   createBorder() {
@@ -76,95 +76,95 @@ export class HootGameScene extends Phaser.Scene {
   createBalls() {
     const currentConfig = this.stageConfigs[this.currentStage - 1];
     const ballCount = currentConfig.balls;
-    
+
     // Clear existing balls
     this.context.balls.forEach(ball => ball.destroy());
     this.context.balls = [];
-    
+
     // Create balls based on stage configuration
     for (let i = 0; i < ballCount; i++) {
       let ballRadius = 36; // Default radius for stages 1 and 2
-      
+
       // Stage 3 has all balls the same size
       if (this.currentStage === 3) {
         ballRadius = 60; // All 4 balls are size 60
       }
-      
-              // Position balls around the player for stage 3
-        let ballX, ballY;
-        if (this.currentStage === 3) {
-          // For stage 3, position balls around the player
-          const playerX = this.cameras.main.width / 2;
-          const playerY = this.cameras.main.height / 2;
-          
-          switch (i) {
-            case 0: // Ball above player
-              ballX = playerX;
-              ballY = playerY - 20;
-              break;
-            case 1: // Ball below player
-              ballX = playerX;
-              ballY = playerY + 20;
-              break;
-            case 2: // Ball to the right of player
-              ballX = playerX + 20;
-              ballY = playerY;
-              break;
-            case 3: // Ball to the left of player
-              ballX = playerX - 20;
-              ballY = playerY;
-              break;
-            default:
-              ballX = playerX;
-              ballY = playerY;
-          }
-        } else {
-          // For other stages, use random positioning
-          ballX = 100 + Math.random() * (this.cameras.main.width - 200);
-          ballY = 50 + Math.random() * (this.cameras.main.height - 100);
-        }
-        
-        const ball = this.add.circle(
-          ballX,
-          ballY,
-          ballRadius,
-          0xff0000 // Red color
-        );
 
-        // Add custom physics properties with specific directions for stage 3
-        let velocityX, velocityY;
-        if (this.currentStage === 3) {
-          // Stage 3 has specific slow directions for each ball
-          const slowSpeed = 1; // Slow speed
-          switch (i) {
-            case 0: // Ball above player - move upward
-              velocityX = 0;
-              velocityY = -slowSpeed;
-              break;
-            case 1: // Ball below player - move downward
-              velocityX = 0;
-              velocityY = slowSpeed;
-              break;
-            case 2: // Ball to the right of player - move rightward
-              velocityX = slowSpeed;
-              velocityY = 0;
-              break;
-            case 3: // Ball to the left of player - move leftward
-              velocityX = -slowSpeed;
-              velocityY = 0;
-              break;
-            default:
-              velocityX = (Math.random() - 0.5) * 4;
-              velocityY = (Math.random() - 0.5) * 4;
-          }
-        } else {
-          // Random velocity for other stages
-          velocityX = (Math.random() - 0.5) * 4;
-          velocityY = (Math.random() - 0.5) * 4;
+      // Position balls around the player for stage 3
+      let ballX, ballY;
+      if (this.currentStage === 3) {
+        // For stage 3, position balls around the player
+        const playerX = this.cameras.main.width / 2;
+        const playerY = this.cameras.main.height / 2;
+
+        switch (i) {
+          case 0: // Ball above player
+            ballX = playerX;
+            ballY = playerY - 90;
+            break;
+          case 1: // Ball below player
+            ballX = playerX;
+            ballY = playerY + 90;
+            break;
+          case 2: // Ball to the right of player
+            ballX = playerX + 90;
+            ballY = playerY;
+            break;
+          case 3: // Ball to the left of player
+            ballX = playerX - 90;
+            ballY = playerY;
+            break;
+          default:
+            ballX = playerX;
+            ballY = playerY;
         }
-        
-        (ball as any).velocityX = velocityX;
-        (ball as any).velocityY = velocityY;
+      } else {
+        // For other stages, use random positioning
+        ballX = 100 + Math.random() * (this.cameras.main.width - 200);
+        ballY = 50 + Math.random() * (this.cameras.main.height - 100);
+      }
+
+      const ball = this.add.circle(
+        ballX,
+        ballY,
+        ballRadius,
+        0xff0000 // Red color
+      );
+
+      // Add custom physics properties with specific directions for stage 3
+      let velocityX, velocityY;
+      if (this.currentStage === 3) {
+        // Stage 3 has specific slow directions for each ball
+        const slowSpeed = 1; // Slow speed
+        switch (i) {
+          case 0: // Ball above player - move upward
+            velocityX = 0;
+            velocityY = -slowSpeed;
+            break;
+          case 1: // Ball below player - move downward
+            velocityX = 0;
+            velocityY = slowSpeed;
+            break;
+          case 2: // Ball to the right of player - move rightward
+            velocityX = slowSpeed;
+            velocityY = 0;
+            break;
+          case 3: // Ball to the left of player - move leftward
+            velocityX = -slowSpeed;
+            velocityY = 0;
+            break;
+          default:
+            velocityX = (Math.random() - 0.5) * 4;
+            velocityY = (Math.random() - 0.5) * 4;
+        }
+      } else {
+        // Random velocity for other stages
+        velocityX = (Math.random() - 0.5) * 4;
+        velocityY = (Math.random() - 0.5) * 4;
+      }
+
+      (ball as any).velocityX = velocityX;
+      (ball as any).velocityY = velocityY;
       (ball as any).mass = 2;
       (ball as any).radius = ballRadius; // Updated radius to match visual size
 
@@ -175,12 +175,12 @@ export class HootGameScene extends Phaser.Scene {
   createEnemies() {
     const currentConfig = this.stageConfigs[this.currentStage - 1];
     const enemyCount = currentConfig.enemies;
-    
+
     // Clear existing enemies
     this.enemies.forEach(enemy => enemy.destroy());
     this.enemies = [];
     this.enemyHealths.clear();
-    
+
     // Create enemies based on stage configuration
     const screenWidth = this.cameras.main.width;
     const screenHeight = this.cameras.main.height;
@@ -240,7 +240,7 @@ export class HootGameScene extends Phaser.Scene {
           };
         }
       }
-      
+
       const enemy = this.add.rectangle(pos.x, pos.y, 20, 20, 0x00ff00); // Green rectangle
       this.enemies.push(enemy);
       this.enemyHealths.set(enemy, 100);
@@ -252,11 +252,13 @@ export class HootGameScene extends Phaser.Scene {
       fontSize: '24px',
       color: '#ffffff'
     });
+    this.healthText.setVisible(false);
 
     this.stageText = this.add.text(20, 50, `Stage: ${this.currentStage}`, {
       fontSize: '24px',
       color: '#ffffff'
     });
+    this.stageText.setVisible(false);
 
     this.gameOverText = this.add.text(this.cameras.main.width / 2, this.cameras.main.height / 2, 'GAME OVER', {
       fontSize: '48px',
@@ -271,6 +273,27 @@ export class HootGameScene extends Phaser.Scene {
     });
     this.congratulationsText.setOrigin(0.5);
     this.congratulationsText.setVisible(false);
+
+    // Create menu UI
+    this.menuTitle = this.add.text(this.cameras.main.width / 2, this.cameras.main.height / 2 - 100, 'LOOPLESS GAME', {
+      fontSize: '48px',
+      color: '#ffffff'
+    });
+    this.menuTitle.setOrigin(0.5);
+
+    this.menuSubtitle = this.add.text(this.cameras.main.width / 2, this.cameras.main.height / 2, 'Press SPACE to start', {
+      fontSize: '24px',
+      color: '#ffff00'
+    });
+    this.menuSubtitle.setOrigin(0.5);
+
+    // Create freeze countdown text
+    this.freezeCountdownText = this.add.text(this.cameras.main.width / 2, this.cameras.main.height / 2, '3', {
+      fontSize: '72px',
+      color: '#ffff00'
+    });
+    this.freezeCountdownText.setOrigin(0.5);
+    this.freezeCountdownText.setVisible(false);
   }
 
   setupInput() {
@@ -312,9 +335,11 @@ export class HootGameScene extends Phaser.Scene {
       this.keys['DOWN'] = false;
     });
 
-    // Space to shoot
+    // Space to shoot or start game
     this.input.keyboard.on('keydown-SPACE', () => {
-      if (!this.gameOver && this.player && this.time.now - this.lastShootTime > this.shootCooldown) {
+      if (this.gameState === 'menu') {
+        this.startGame();
+      } else if (this.gameState === 'playing' && !this.gameOver && !this.isStageFrozen && this.player && this.time.now - this.lastShootTime > this.shootCooldown) {
         this.shoot();
         this.lastShootTime = this.time.now;
       }
@@ -323,7 +348,7 @@ export class HootGameScene extends Phaser.Scene {
 
   shoot() {
     if (!this.player) return;
-    
+
     // Create bullet at player position
     const bullet = this.add.circle(this.player.x, this.player.y, 2, 0xffff00); // Yellow circle
 
@@ -354,7 +379,13 @@ export class HootGameScene extends Phaser.Scene {
   }
 
   update() {
-    if (this.gameOver) return;
+    if (this.gameState !== 'playing') return;
+
+    // Handle freeze period
+    if (this.isStageFrozen) {
+      this.updateFreezeCountdown();
+      return;
+    }
 
     this.updatePlayerMovement();
     this.updateBalls();
@@ -369,7 +400,7 @@ export class HootGameScene extends Phaser.Scene {
   }
 
   updatePlayerMovement() {
-    if (!this.player) return;
+    if (!this.player || this.isStageFrozen) return;
 
     // Handle continuous movement based on key states
     if (this.keys['LEFT']) {
@@ -429,7 +460,7 @@ export class HootGameScene extends Phaser.Scene {
       if (distance <= this.explosionRadius) {
         // Enemy is within proximity - trigger explosion
         this.triggerExplosion(enemy);
-        
+
         // Remove the enemy
         enemy.destroy();
         this.enemies.splice(i, 1);
@@ -441,10 +472,10 @@ export class HootGameScene extends Phaser.Scene {
   triggerExplosion(enemy: Phaser.GameObjects.Rectangle) {
     // Create explosion effect
     const explosion = this.add.circle(enemy.x, enemy.y, this.explosionRadius, 0xff0000, 0.3);
-    
+
     // Reduce player health
     this.playerHealth -= this.explosionDamage;
-    
+
     // Remove explosion effect after a short time
     this.time.delayedCall(200, () => {
       explosion.destroy();
@@ -453,22 +484,28 @@ export class HootGameScene extends Phaser.Scene {
     // Check for game over
     if (this.playerHealth <= 0) {
       this.gameOver = true;
+      this.gameState = 'gameOver';
       this.gameOverText.setVisible(true);
+
+      // Return to menu after 3 seconds
+      this.time.delayedCall(3000, () => {
+        this.showMenu();
+      });
     }
   }
 
   checkStageCompletion() {
     // Don't check for completion during stage transitions
     if (this.isTransitioning) return;
-    
+
     // Check if all enemies are destroyed
     if (this.enemies.length === 0) {
       // Show congratulations message
       this.congratulationsText.setVisible(true);
-      
+
       // Set transitioning flag to prevent multiple calls
       this.isTransitioning = true;
-      
+
       // Wait 2 seconds then move to next stage
       this.time.delayedCall(2000, () => {
         this.nextStage();
@@ -476,34 +513,111 @@ export class HootGameScene extends Phaser.Scene {
     }
   }
 
+  showMenu() {
+    this.gameState = 'menu';
+    this.menuTitle.setVisible(true);
+    this.menuSubtitle.setVisible(true);
+    this.healthText.setVisible(false);
+    this.stageText.setVisible(false);
+    this.gameOverText.setVisible(false);
+    this.congratulationsText.setVisible(false);
+  }
+
+  startGame() {
+    this.gameState = 'playing';
+    this.gameOver = false;
+    this.currentStage = 1;
+    this.playerHealth = 100;
+
+    // Hide menu
+    this.menuTitle.setVisible(false);
+    this.menuSubtitle.setVisible(false);
+
+    // Show game UI
+    this.healthText.setVisible(true);
+    this.stageText.setVisible(true);
+
+    // Clear existing game elements
+    if (this.player) {
+      this.player.destroy();
+    }
+    this.bullets.forEach(bullet => bullet.destroy());
+    this.bullets = [];
+    this.enemies.forEach(enemy => enemy.destroy());
+    this.enemies = [];
+    this.enemyHealths.clear();
+    this.context.balls.forEach(ball => ball.destroy());
+    this.context.balls = [];
+
+    // Create game elements
+    this.createPlayer();
+    this.createBalls();
+    this.createEnemies();
+
+    // Reset transitioning flag
+    this.isTransitioning = false;
+  }
+
   nextStage() {
     // Hide congratulations text
     this.congratulationsText.setVisible(false);
-    
+
     // Check if there are more stages
     if (this.currentStage < this.stageConfigs.length) {
       this.currentStage++;
-      
+
       // Update stage text
       this.stageText.setText(`Stage: ${this.currentStage}`);
-      
+
       // Reset player position to center of screen
       if (this.player) {
         this.player.x = this.cameras.main.width / 2;
         this.player.y = this.cameras.main.height / 2;
       }
-      
+
       // Create new stage content
       this.createBalls();
       this.createEnemies();
-      
+
       // Reset transitioning flag after creating new content
       this.isTransitioning = false;
+
+      // Start freeze period for stages 2 and 3
+      if (this.currentStage > 1) {
+        this.startFreezePeriod();
+      }
     } else {
       // Game completed - show final congratulations
       this.congratulationsText.setText('GAME COMPLETED!');
       this.congratulationsText.setVisible(true);
       this.gameOver = true;
+      this.gameState = 'gameOver';
+
+      // Return to menu after 3 seconds
+      this.time.delayedCall(3000, () => {
+        this.showMenu();
+      });
+    }
+  }
+
+  startFreezePeriod() {
+    this.isStageFrozen = true;
+    this.freezeTimer = 3; // 3 seconds
+    this.freezeCountdownText.setVisible(true);
+    this.freezeCountdownText.setText('3');
+  }
+
+  updateFreezeCountdown() {
+    this.freezeTimer -= 1 / 60; // Assuming 60 FPS, decrement by 1/60th of a second
+
+    if (this.freezeTimer <= 0) {
+      // Freeze period ended
+      this.isStageFrozen = false;
+      this.freezeCountdownText.setVisible(false);
+    } else {
+      // Update countdown display
+      const secondsLeft = Math.ceil(this.freezeTimer);
+      this.freezeCountdownText.setText(secondsLeft.toString());
     }
   }
 
