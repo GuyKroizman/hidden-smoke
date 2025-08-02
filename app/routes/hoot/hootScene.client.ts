@@ -48,7 +48,15 @@ export class HootGameScene extends Phaser.Scene {
   }
 
   preload() {
-    // Load assets here if needed
+    // Load sound assets
+    this.load.audio('shoot', '/hoot-sounds/Shoot.wav');
+    this.load.audio('shotHitBall', '/hoot-sounds/Shot Hit Ball.wav');
+    this.load.audio('shotHitEnemy', '/hoot-sounds/Shot Hit Enemy.wav');
+    this.load.audio('enemyDie', '/hoot-sounds/Enemy die.wav');
+    this.load.audio('ballHitWall', '/hoot-sounds/Ball Hit Wall.wav');
+    this.load.audio('ballHitBall1', '/hoot-sounds/Ball Hit Ball1.wav');
+    this.load.audio('ballHitBall2', '/hoot-sounds/Ball Hit Ball2.wav');
+    this.load.audio('ballHitBall3', '/hoot-sounds/Ball Hit Ball3.wav');
   }
 
   create() {
@@ -361,9 +369,12 @@ export class HootGameScene extends Phaser.Scene {
     });
   }
 
-  shoot() {
+    shoot() {
     if (!this.player) return;
-
+    
+    // Play shoot sound
+    this.sound.play('shoot');
+    
     // Create bullet at player position
     const bullet = this.add.circle(this.player.x, this.player.y, 2, 0xffff00); // Yellow circle
 
@@ -477,6 +488,7 @@ export class HootGameScene extends Phaser.Scene {
         this.triggerExplosion(enemy);
 
         // Remove the enemy
+        this.sound.play('enemyDie');
         enemy.destroy();
         this.enemies.splice(i, 1);
         this.enemyHealths.delete(enemy);
@@ -704,18 +716,22 @@ export class HootGameScene extends Phaser.Scene {
       if (ball.x - ball.radius < 20) {
         ball.x = 20 + ball.radius;
         ball.velocityX *= -0.8;
+        this.sound.play('ballHitWall');
       }
       if (ball.x + ball.radius > this.cameras.main.width - 20) {
         ball.x = this.cameras.main.width - 20 - ball.radius;
         ball.velocityX *= -0.8;
+        this.sound.play('ballHitWall');
       }
       if (ball.y - ball.radius < 20) {
         ball.y = 20 + ball.radius;
         ball.velocityY *= -0.8;
+        this.sound.play('ballHitWall');
       }
       if (ball.y + ball.radius > this.cameras.main.height - 20) {
         ball.y = this.cameras.main.height - 20 - ball.radius;
         ball.velocityY *= -0.8;
+        this.sound.play('ballHitWall');
       }
     });
   }
@@ -749,6 +765,9 @@ export class HootGameScene extends Phaser.Scene {
         const minDistance = ball1.radius + ball2.radius;
 
         if (distance < minDistance) {
+          // Play random ball hit ball sound
+          this.playRandomBallHitBallSound();
+          
           // Collision detected - bounce balls off each other
           const angle = Math.atan2(dy, dx);
 
@@ -807,6 +826,7 @@ export class HootGameScene extends Phaser.Scene {
 
         if (distance < minDistance) {
           // Ball hit enemy - destroy the enemy
+          this.sound.play('enemyDie');
           enemy.destroy();
           this.enemies.splice(j, 1);
           this.enemyHealths.delete(enemy);
@@ -834,6 +854,9 @@ export class HootGameScene extends Phaser.Scene {
         const minDistance = (bullet as any).radius + ball.radius;
 
         if (distance < minDistance) {
+          // Play shot hit ball sound
+          this.sound.play('shotHitBall');
+          
           // Transfer bullet energy to ball
           const transferFactor = 0.5;
 
@@ -860,11 +883,17 @@ export class HootGameScene extends Phaser.Scene {
           const minDistance = (bullet as any).radius + 10; // Enemy radius is 10
 
           if (distance < minDistance) {
+            // Play shot hit enemy sound
+            this.sound.play('shotHitEnemy');
+            
             // Reduce enemy health
             const currentHealth = this.enemyHealths.get(enemy) || 0;
             const newHealth = currentHealth - 10;
 
             if (newHealth <= 0) {
+              // Play enemy die sound
+              this.sound.play('enemyDie');
+              
               // Destroy enemy
               enemy.destroy();
               this.enemies.splice(j, 1);
@@ -908,6 +937,12 @@ export class HootGameScene extends Phaser.Scene {
         }
       }
     });
+  }
+
+  playRandomBallHitBallSound() {
+    const ballHitSounds = ['ballHitBall1', 'ballHitBall2', 'ballHitBall3'];
+    const randomSound = ballHitSounds[Math.floor(Math.random() * ballHitSounds.length)];
+    this.sound.play(randomSound);
   }
 
   updateUI() {
