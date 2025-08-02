@@ -14,7 +14,7 @@ export class HootGameScene extends Phaser.Scene {
   private enemyHealths: Map<Phaser.GameObjects.Rectangle, number> = new Map();
   private enemy2: Phaser.GameObjects.Container | null = null;
   private enemy2Mode: 'chase' | 'avoid' = 'chase';
-  private enemy2Speed: number = 2;
+  private enemy2Speed: number = 1;
   private enemy2AvoidSpeed: number = 4; // Twice as fast when avoiding
   private lastShootTime: number = 0;
   private shootCooldown: number = 500; // 500ms = 0.5 seconds
@@ -1150,6 +1150,26 @@ export class HootGameScene extends Phaser.Scene {
           enemy.destroy();
           this.enemies.splice(j, 1);
           this.enemyHealths.delete(enemy);
+        }
+      }
+    }
+
+    // Check ball collisions with enemy2 (stage 4)
+    if (this.currentStage === 4 && this.enemy2 && this.enemy2.active) {
+      for (let i = 0; i < this.context.balls.length; i++) {
+        const ball = this.context.balls[i] as any;
+        if (!ball || !ball.active) continue;
+
+        const dx = ball.x - this.enemy2.x;
+        const dy = ball.y - this.enemy2.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const minDistance = ball.radius + 15; // Enemy2 radius is 15 (half of 30x30)
+
+        if (distance < minDistance) {
+          // Ball hit enemy2 - destroy the enemy2
+          this.sound.play('enemyDie');
+          this.enemy2.destroy();
+          this.enemy2 = null;
         }
       }
     }
