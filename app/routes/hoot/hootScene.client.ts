@@ -3,7 +3,7 @@ import type { HootGameContext } from "./context.client";
 
 export class HootGameScene extends Phaser.Scene {
   context: HootGameContext;
-  private player!: Phaser.GameObjects.Rectangle;
+  private player!: Phaser.GameObjects.Container;
   private playerHealth: number = 100;
   private bullets: Phaser.GameObjects.Shape[] = [];
   private enemies: Phaser.GameObjects.Rectangle[] = [];
@@ -86,7 +86,27 @@ export class HootGameScene extends Phaser.Scene {
   }
 
   createPlayer() {
-    this.player = this.add.rectangle(this.cameras.main.width / 2, this.cameras.main.height / 2, this.playerSize, this.playerSize, 0x800080); // Purple rectangle
+    // Create a container for the complex player object
+    this.player = this.add.container(this.cameras.main.width / 2, this.cameras.main.height / 2);
+    
+    // Create the main black rectangle body
+    const body = this.add.rectangle(0, 0, this.playerSize, this.playerSize, 0x000000); // Black rectangle
+    
+    // Create additional shapes for complexity
+    // White cross in the center
+    const crossVertical = this.add.rectangle(0, 0, 4, this.playerSize - 4, 0xffffff);
+    const crossHorizontal = this.add.rectangle(0, 0, this.playerSize - 4, 4, 0xffffff);
+    
+    // Small red circles in the corners
+    const cornerSize = 3;
+    const cornerOffset = (this.playerSize / 2) - 2;
+    const topLeftCorner = this.add.circle(-cornerOffset, -cornerOffset, cornerSize, 0xff0000);
+    const topRightCorner = this.add.circle(cornerOffset, -cornerOffset, cornerSize, 0xff0000);
+    const bottomLeftCorner = this.add.circle(-cornerOffset, cornerOffset, cornerSize, 0xff0000);
+    const bottomRightCorner = this.add.circle(cornerOffset, cornerOffset, cornerSize, 0xff0000);
+    
+    // Add all shapes to the container
+    this.player.add([body, crossVertical, crossHorizontal, topLeftCorner, topRightCorner, bottomLeftCorner, bottomRightCorner]);
   }
 
   createBalls() {
