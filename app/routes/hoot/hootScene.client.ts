@@ -88,25 +88,27 @@ export class HootGameScene extends Phaser.Scene {
   createPlayer() {
     // Create a container for the complex player object
     this.player = this.add.container(this.cameras.main.width / 2, this.cameras.main.height / 2);
-    
+
+    // Array to hold all player shapes
+    const playerShapes: Phaser.GameObjects.Shape[] = [];
+
     // Create the main black rectangle body
     const body = this.add.rectangle(0, 0, this.playerSize, this.playerSize, 0x000000); // Black rectangle
-    
-    // Create additional shapes for complexity
-    // White cross in the center
-    const crossVertical = this.add.rectangle(0, 0, 4, this.playerSize - 4, 0xffffff);
-    const crossHorizontal = this.add.rectangle(0, 0, this.playerSize - 4, 4, 0xffffff);
-    
-    // Small red circles in the corners
-    const cornerSize = 3;
+    playerShapes.push(body);
+
+    const cornerSize = 4;
     const cornerOffset = (this.playerSize / 2) - 2;
-    const topLeftCorner = this.add.circle(-cornerOffset, -cornerOffset, cornerSize, 0xff0000);
-    const topRightCorner = this.add.circle(cornerOffset, -cornerOffset, cornerSize, 0xff0000);
-    const bottomLeftCorner = this.add.circle(-cornerOffset, cornerOffset, cornerSize, 0xff0000);
-    const bottomRightCorner = this.add.circle(cornerOffset, cornerOffset, cornerSize, 0xff0000);
-    
-    // Add all shapes to the container
-    this.player.add([body, crossVertical, crossHorizontal, topLeftCorner, topRightCorner, bottomLeftCorner, bottomRightCorner]);
+    const leftEye = this.add.circle(-cornerOffset, -cornerOffset, cornerSize, 0xffffff);
+    const rightEye = this.add.circle(cornerOffset, -cornerOffset, cornerSize, 0xffffff);
+    playerShapes.push(leftEye);
+    playerShapes.push(rightEye);
+
+    const leftPupil = this.add.circle(-cornerOffset, -cornerOffset, 1, 0x000000);
+    const rightPupil = this.add.circle(cornerOffset, -cornerOffset, 1, 0x000000);
+    playerShapes.push(leftPupil);
+    playerShapes.push(rightPupil);
+
+    this.player.add(playerShapes);
   }
 
   createBalls() {
@@ -389,12 +391,12 @@ export class HootGameScene extends Phaser.Scene {
     });
   }
 
-    shoot() {
+  shoot() {
     if (!this.player) return;
-    
+
     // Play shoot sound
     this.sound.play('shoot');
-    
+
     // Create bullet at player position
     const bullet = this.add.circle(this.player.x, this.player.y, 2, 0xffff00); // Yellow circle
 
@@ -787,7 +789,7 @@ export class HootGameScene extends Phaser.Scene {
         if (distance < minDistance) {
           // Play random ball hit ball sound
           this.playRandomBallHitBallSound();
-          
+
           // Collision detected - bounce balls off each other
           const angle = Math.atan2(dy, dx);
 
@@ -876,7 +878,7 @@ export class HootGameScene extends Phaser.Scene {
         if (distance < minDistance) {
           // Play shot hit ball sound
           this.sound.play('shotHitBall');
-          
+
           // Transfer bullet energy to ball
           const transferFactor = 0.5;
 
@@ -905,7 +907,7 @@ export class HootGameScene extends Phaser.Scene {
           if (distance < minDistance) {
             // Play shot hit enemy sound
             this.sound.play('shotHitEnemy');
-            
+
             // Reduce enemy health
             const currentHealth = this.enemyHealths.get(enemy) || 0;
             const newHealth = currentHealth - 10;
@@ -913,7 +915,7 @@ export class HootGameScene extends Phaser.Scene {
             if (newHealth <= 0) {
               // Play enemy die sound
               this.sound.play('enemyDie');
-              
+
               // Destroy enemy
               enemy.destroy();
               this.enemies.splice(j, 1);
